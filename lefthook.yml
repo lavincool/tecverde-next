@@ -15,3 +15,17 @@ pre-push:
       run: bun run typecheck
     test:
       run: bun run test
+
+pre-commit:
+  piped: true
+  commands:
+    format:
+      priority: 1
+      glob: "*.{ts,tsx,js,mjs,cjs,json,jsonc,css,md,yaml,yml,toml}"
+      run: bunx --no-install oxfmt --no-error-on-unmatched-pattern {staged_files}
+      stage_fixed: true
+    lint:
+      priority: 2
+      glob: "*.{ts,tsx,js,mjs,cjs}"
+      run: bunx --no-install oxlint --fix --deny-warnings {staged_files}
+      stage_fixed: true
