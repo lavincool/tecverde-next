@@ -327,3 +327,78 @@ html:active-view-transition-type(nav-back)::view-transition-new(root) {
     animation-duration: 0.01ms !important;
   }
 }
+
+.staff-panel {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: clamp(1.15rem, 3vw, 1.75rem);
+}
+
+.staff-field {
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.875rem;
+  font-weight: 550;
+}
+
+.staff-input {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--field-radius);
+  background-color: var(--background);
+  color: var(--foreground);
+  padding: 0.55rem 0.8rem;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.staff-nav {
+  position: fixed;
+  z-index: 20;
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.3rem;
+  border-block-start: 1px solid var(--border);
+  background: var(--background);
+  padding: 0.5rem 0.6rem max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.staff-nav-link {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-radius: 10rem;
+  padding-inline: 1rem;
+  font-size: 0.875rem;
+  font-weight: 550;
+}
+
+.staff-nav-link:hover {
+  background: var(--surface-hover);
+}
+
+@media (min-width: 64rem) {
+  .staff-shell {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+
+  .staff-nav {
+    position: sticky;
+    inset-block-start: var(--header-height);
+    height: calc(100dvh - var(--header-height));
+    align-self: start;
+    flex-direction: column;
+    justify-content: flex-start;
+    border-block-start: 0;
+    border-inline-end: 1px solid var(--border);
+    padding: 1rem;
+  }
+}
