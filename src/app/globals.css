@@ -1,10 +1,329 @@
 @import "tailwindcss";
+@import "@heroui/styles";
+
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
 :root {
   color-scheme: light dark;
+
+  --background: light-dark(oklch(0.98 0 0), oklch(0.13 0 0));
+  --foreground: light-dark(oklch(0.17 0 0), oklch(0.96 0 0));
+  --surface: light-dark(oklch(1 0 0), oklch(0.19 0 0));
+  --surface-hover: light-dark(oklch(0.95 0 0), oklch(0.23 0 0));
+  --muted: light-dark(oklch(0.43 0 0), oklch(0.73 0 0));
+  --border: light-dark(oklch(0.89 0 0), oklch(0.32 0 0));
+  --accent: light-dark(oklch(0.48 0.13 150), oklch(0.8 0.17 150));
+  --accent-foreground: light-dark(oklch(1 0 0), oklch(0.17 0 0));
+  --focus: light-dark(oklch(0.44 0.12 150), oklch(0.82 0.16 150));
+  --radius: 1.5rem;
+  --field-radius: 1rem;
+  --tv-sheet-radius: 1.75rem;
+  --tv-shadow: 0 1px 2px oklch(0 0 0 / 0.05), 0 10px 30px oklch(0 0 0 / 0.05);
+  --tv-hero-surface: oklch(0.19 0.015 150);
+  --tv-hero-accent: oklch(0.8 0.17 150);
+  --tv-hero-muted: oklch(0.83 0.012 150);
+  --header-height: 4.25rem;
+  --tab-height: 4.75rem;
+}
+
+.light,
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-panel: var(--surface);
+  --color-line: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-hero-accent: var(--tv-hero-accent);
+  --color-hero-muted: var(--tv-hero-muted);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-pixel: var(--font-geist-pixel-square), ui-monospace, monospace;
+  --radius-card: var(--radius);
+  --radius-sheet: var(--tv-sheet-radius);
+  --shadow-panel: var(--tv-shadow);
+  --ease-press: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+html {
+  scroll-padding-block-start: calc(var(--header-height) + 1rem);
+  scroll-padding-block-end: calc(var(--tab-height) + env(safe-area-inset-bottom) + 1rem);
 }
 
 body {
-  background: light-dark(#fff, #101010);
-  color: light-dark(#171717, #fafafa);
+  min-height: 100dvh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 50;
+  inset-block-start: 0.65rem;
+  inset-inline-start: 1rem;
+  padding: 0.7rem 1rem;
+  transform: translateY(-180%);
+  border-radius: 99rem;
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.public-header,
+.public-nav {
+  background-color: var(--background);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .public-header,
+  .public-nav {
+    background-color: color-mix(in oklab, var(--background) 78%, transparent);
+    backdrop-filter: blur(20px);
+  }
+}
+
+.public-header {
+  position: sticky;
+  z-index: 20;
+  inset-block-start: 0;
+  display: flex;
+  min-height: var(--header-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+  border-block-end: 1px solid var(--border);
+  view-transition-name: public-header;
+}
+
+.staff-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.4rem;
+  padding-inline: 0.35rem;
+  border-radius: 99rem;
+  font-size: 0.875rem;
+  font-weight: 550;
+  color: var(--muted);
+}
+
+.staff-link:hover {
+  color: var(--accent);
+}
+
+.public-nav {
+  position: fixed;
+  z-index: 20;
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-height: calc(var(--tab-height) + env(safe-area-inset-bottom));
+  align-items: stretch;
+  gap: 0.2rem;
+  padding: 0.4rem 0.45rem max(0.4rem, env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--border);
+  view-transition-name: public-nav;
+}
+
+.public-nav-link {
+  display: flex;
+  min-height: 2.75rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-radius: 1rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  transition:
+    background-color 150ms,
+    color 150ms,
+    scale 150ms;
+}
+
+.public-nav-link[aria-current="page"],
+.public-nav-link:hover {
+  background-color: var(--surface-hover);
+  color: var(--foreground);
+}
+
+.public-nav-link:active,
+.home-action:active {
+  scale: 0.98;
+}
+
+.public-nav-icon {
+  display: grid;
+  min-width: 2.2rem;
+  min-height: 1.75rem;
+  place-items: center;
+  border-radius: 99rem;
+}
+
+.public-nav-link[data-primary="true"] .public-nav-icon {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.public-content {
+  width: min(100%, 69rem);
+  margin-inline: auto;
+  padding: clamp(1rem, 3vw, 2.5rem) max(1rem, env(safe-area-inset-right))
+    calc(var(--tab-height) + env(safe-area-inset-bottom) + 1.75rem)
+    max(1rem, env(safe-area-inset-left));
+}
+
+.campus-hero {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  min-height: clamp(22rem, 36vw, 27rem);
+  align-items: end;
+  padding: clamp(1.75rem, 5vw, 3.75rem);
+  border-radius: var(--radius);
+  background: var(--tv-hero-surface);
+  color: oklch(0.98 0 0);
+}
+
+.campus-hero-pattern {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 87% 20%, oklch(0.64 0.13 150 / 0.25), transparent 38%),
+    radial-gradient(circle, oklch(0.8 0.17 150 / 0.45) 1px, transparent 1.6px) 0 0 / 13px 13px;
+  mask-image: linear-gradient(146deg, transparent 24%, #000 90%);
+  pointer-events: none;
+}
+
+.home-action {
+  display: flex;
+  min-height: 6.25rem;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  transition:
+    scale 150ms,
+    box-shadow 150ms;
+}
+
+.home-action:hover {
+  box-shadow: var(--tv-shadow);
+}
+
+.home-action[data-primary="true"] {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.home-action-description {
+  color: var(--muted);
+}
+
+.home-action[data-primary="true"] .home-action-description {
+  color: var(--accent-foreground);
+}
+
+@media (min-width: 64rem) {
+  html {
+    scroll-padding-block-end: 1rem;
+  }
+
+  .public-header {
+    padding-inline: 1.75rem;
+  }
+
+  .public-shell {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+
+  .public-nav {
+    position: sticky;
+    inset-block-start: var(--header-height);
+    display: flex;
+    height: calc(100dvh - var(--header-height));
+    flex-direction: column;
+    align-self: start;
+    gap: 0.35rem;
+    padding: 1.5rem 0.9rem;
+    border-block-start: 0;
+    border-inline-end: 1px solid var(--border);
+  }
+
+  .public-nav-link {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.55rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .public-content {
+    padding-inline: clamp(2rem, 4vw, 4rem);
+    padding-block-end: 3.5rem;
+  }
+}
+
+@keyframes nav-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--nav-offset, 12px));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+html:active-view-transition-type(nav-forward)::view-transition-new(root),
+html:active-view-transition-type(nav-back)::view-transition-new(root) {
+  animation: nav-in 170ms ease-out both;
+}
+
+html:active-view-transition-type(nav-back)::view-transition-new(root) {
+  --nav-offset: -12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.01ms !important;
+  }
 }
