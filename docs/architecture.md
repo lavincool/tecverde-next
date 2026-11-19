@@ -10,3 +10,4 @@ Reports can be read by authorized staff, by the reporter's original device, or t
 
 - [ADR 0001 — Turso and Drizzle](adr/0001-turso-drizzle-rc.md)
 - [ADR 0002 — Bun on Vercel](adr/0002-bun-runtime-fallback.md)
+- [ADR 0003 — Anonymous public access and invite-only staff](adr/0003-anonymous-identity.md)
