@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "heroui": {
+      "command": "bunx",
+      "args": ["@heroui/react-mcp@1.1.4"]
+    }
+  }
+}
