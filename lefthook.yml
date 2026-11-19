@@ -1,0 +1,17 @@
+commit-msg:
+  piped: true
+  commands:
+    attribution:
+      priority: 1
+      run: bun scripts/check-commit-msg.ts "{1}"
+    conventional:
+      priority: 2
+      run: bunx --no-install commitlint --edit "{1}"
+
+pre-push:
+  parallel: true
+  commands:
+    typecheck:
+      run: bun run typecheck
+    test:
+      run: bun run test
