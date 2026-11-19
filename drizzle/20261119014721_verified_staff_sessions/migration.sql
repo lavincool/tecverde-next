@@ -1,0 +1,1 @@
+ALTER TABLE `session` ADD `mfa_verified` integer DEFAULT false NOT NULL;
