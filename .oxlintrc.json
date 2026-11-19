@@ -45,6 +45,12 @@
       {
         "allow": ["**/*.css", "./src/lib/env", "server-only"]
       }
+    ],
+    "react-perf/jsx-no-new-function-as-prop": [
+      "warn",
+      {
+        "nativeAllowList": ["action", "onClick"]
+      }
     ]
   }
 }
