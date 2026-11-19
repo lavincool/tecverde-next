@@ -1,0 +1,50 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "react",
+    "react-perf",
+    "nextjs",
+    "jsx-a11y",
+    "import",
+    "promise"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "options": {
+    "typeAware": true
+  },
+  "ignorePatterns": [".next", "drizzle", "next-env.d.ts"],
+  "overrides": [
+    {
+      "files": [
+        "src/app/**/*.{ts,tsx}",
+        "src/components/**/*.{ts,tsx}",
+        "src/features/**/*.{ts,tsx}"
+      ],
+      "rules": {
+        "react/jsx-no-literals": [
+          "error",
+          {
+            "noStrings": true,
+            "ignoreProps": true
+          }
+        ]
+      }
+    }
+  ],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": [
+      "warn",
+      {
+        "allow": ["**/*.css", "./src/lib/env", "server-only"]
+      }
+    ]
+  }
+}
