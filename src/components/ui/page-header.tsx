@@ -4,10 +4,12 @@ export function PageHeader({
   title,
   description,
   actions,
+  children,
 }: {
   title: string;
   description?: string;
   actions?: ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-5">
@@ -16,6 +18,7 @@ export function PageHeader({
         {description && <p className="mt-3 max-w-prose text-base text-muted">{description}</p>}
       </div>
       {actions}
+      {children}
     </header>
   );
 }
