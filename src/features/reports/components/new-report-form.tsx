@@ -126,6 +126,9 @@ function NewReportFormInner({
           <p id="tracking-link-hint" className="text-sm text-muted">
             {copy.success.trackingLinkHint}
           </p>
+          {state.report.confirmationEmailSent && (
+            <p className="text-sm text-muted">{copy.success.emailSent}</p>
+          )}
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button className="button button--secondary" type="button" onClick={copyTrackingLink}>
               {copy.success.copyLink}

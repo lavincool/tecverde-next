@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 
 import { consumeDraftForDevice, DraftError, readDraftForDevice } from "@/features/media/drafts";
+import { sendReportConfirmation } from "@/features/notifications/report-updates";
 import { formText } from "@/lib/form-text";
 import { errors } from "@/messages/es-MX/errors";
 import { reports } from "@/messages/es-MX/reports";
@@ -36,6 +38,7 @@ export type CreateReportActionState = {
     number: number;
     trackingToken: string;
     trackingUrl: string;
+    confirmationEmailSent: boolean;
   };
 };
 
@@ -101,8 +104,20 @@ export async function createReport(
     await consumeDraftForDevice("report", draftToken);
 
     const created = await createReportRecord(db, { ...parsed.data, deviceHash, ipHash }, secret);
-    const trackingUrl = new URL(`/reports/track/${created.trackingToken}`, await getAppOrigin())
-      .href;
+    const origin = await getAppOrigin();
+    const trackingUrl = new URL(`/reports/track/${created.trackingToken}`, origin).href;
+    const reporterEmail = parsed.data.reporterEmail;
+    if (reporterEmail) {
+      after(() =>
+        sendReportConfirmation({
+          reportId: created.id,
+          number: created.number,
+          email: reporterEmail,
+          trackingUrl,
+          origin,
+        }),
+      );
+    }
 
     revalidatePath("/reports/mine");
 
@@ -113,6 +128,7 @@ export async function createReport(
         number: created.number,
         trackingToken: created.trackingToken,
         trackingUrl,
+        confirmationEmailSent: Boolean(reporterEmail),
       },
     };
   } catch (error) {
