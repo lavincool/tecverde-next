@@ -44,21 +44,23 @@ export function parseGalleryFilters(
   });
 }
 
-export async function getGallery(filters: GalleryFilters) {
+// Public adoption reads are cached across requests, but each exported wrapper first opts into
+// request time with connection(), so nothing queries the database while prerendering at build.
+async function cachedGallery(filters: GalleryFilters) {
   "use cache";
   cacheTag(PETS_TAG);
   cacheLife("hours");
   return listPublicPets(db, filters);
 }
 
-export async function getAdoptedStories(limit?: number) {
+async function cachedAdoptedStories(limit?: number) {
   "use cache";
   cacheTag(PETS_TAG);
   cacheLife("hours");
   return listAdoptedPets(db, limit);
 }
 
-export async function getPublicPet(slug: string) {
+async function cachedPublicPet(slug: string) {
   "use cache";
   cacheTag(PETS_TAG);
   cacheLife("hours");
@@ -66,14 +68,14 @@ export async function getPublicPet(slug: string) {
   return findPublicPetBySlug(db, slug);
 }
 
-export async function getPublicPetSlugs() {
+async function cachedPublicPetSlugs() {
   "use cache";
   cacheTag(PETS_TAG);
   cacheLife("hours");
   return listPublicPetSlugs(db);
 }
 
-export async function getCampusAreas() {
+async function cachedCampusAreas() {
   "use cache";
   cacheLife("days");
   const { buildings } = await listActiveCatalog(db);
@@ -118,4 +120,29 @@ export async function getStaffPet(id: string) {
 export async function getOpenRequests() {
   await requireStaff({ adoption_request: ["read"] });
   return listOpenRequests(db);
+}
+
+export async function getGallery(filters: GalleryFilters) {
+  await connection();
+  return cachedGallery(filters);
+}
+
+export async function getAdoptedStories(limit?: number) {
+  await connection();
+  return cachedAdoptedStories(limit);
+}
+
+export async function getPublicPet(slug: string) {
+  await connection();
+  return cachedPublicPet(slug);
+}
+
+export async function getPublicPetSlugs() {
+  await connection();
+  return cachedPublicPetSlugs();
+}
+
+export async function getCampusAreas() {
+  await connection();
+  return cachedCampusAreas();
 }
