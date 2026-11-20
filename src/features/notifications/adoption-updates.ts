@@ -3,6 +3,7 @@ import "server-only";
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { findRequestNotificationTargets } from "@/features/adoption/repository";
+import { common } from "@/messages/es-MX/common";
 import { emails } from "@/messages/es-MX/emails";
 import { db } from "@/server/db";
 import { pet } from "@/server/db/schema/adoption";
@@ -12,6 +13,7 @@ import { ActionEmail } from "@/server/email/templates/report-emails";
 import { requireHashSecret } from "@/server/security/device";
 
 import { issueActionToken } from "./action-tokens";
+import { pushToStaff } from "./push";
 
 import type { PetStatusChange } from "@/features/adoption/repository";
 
@@ -95,6 +97,11 @@ export async function notifyPendingPost(petId: string, origin: string) {
     const [row] = await db.select({ name: pet.name }).from(pet).where(eq(pet.id, petId)).limit(1);
     if (!row) return;
     const copy = emails.moderationQueue;
+    await pushToStaff("pending_posts", {
+      ...common.push.pendingPost(row.name),
+      url: `/dashboard/adoption/${petId}`,
+      tag: `pending-post-${petId}`,
+    });
     const recipients = await moderatorEmails();
     await Promise.all(
       recipients.map((to) =>
