@@ -49,15 +49,17 @@ function firstForwardedValue(headerValue: string | null): string | undefined {
   return first || undefined;
 }
 
+export async function getRequestIp(): Promise<string | undefined> {
+  const requestHeaders = await headers();
+  return process.env.VERCEL
+    ? firstForwardedValue(requestHeaders.get("x-vercel-forwarded-for"))
+    : (firstForwardedValue(requestHeaders.get("x-forwarded-for")) ??
+        firstForwardedValue(requestHeaders.get("x-real-ip")));
+}
+
 export async function getRequestIpHash(): Promise<string> {
   const secret = requireHashSecret();
-  const requestHeaders = await headers();
-  const ip = process.env.VERCEL
-    ? (firstForwardedValue(requestHeaders.get("x-vercel-forwarded-for")) ?? "unknown")
-    : (firstForwardedValue(requestHeaders.get("x-forwarded-for")) ??
-      firstForwardedValue(requestHeaders.get("x-real-ip")) ??
-      "unknown");
-  return hashValue(secret, "report-ip", ip);
+  return hashValue(secret, "report-ip", (await getRequestIp()) ?? "unknown");
 }
 
 function parseHttpOrigin(candidate: string | undefined): string | undefined {
