@@ -64,7 +64,8 @@ describe("email double opt-in", () => {
         purpose: "verify_report_email",
         subjectId: reportId,
       });
-      expect(await applyEmailVerification(database, `${token.slice(0, -1)}A`, secret)).toBeNull();
+      const tampered = `${token.slice(0, -1)}${token.endsWith("A") ? "B" : "A"}`;
+      expect(await applyEmailVerification(database, tampered, secret)).toBeNull();
       expect(await applyEmailVerification(database, token, `${secret}-other`)).toBeNull();
 
       expect(await applyEmailVerification(database, token, secret)).toEqual({
