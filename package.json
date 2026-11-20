@@ -22,6 +22,8 @@
     "staff:bootstrap": "bun scripts/staff-bootstrap.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1172.0",
+    "@aws-sdk/s3-request-presigner": "3.1172.0",
     "@heroui/react": "3.2.7",
     "@heroui/styles": "3.2.7",
     "@libsql/client": "0.18.0",
