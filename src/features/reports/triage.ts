@@ -2,6 +2,7 @@ import { and, asc, count, desc, eq, inArray, isNull, lt, ne, notInArray, sql } f
 import { alias } from "drizzle-orm/sqlite-core";
 import { z } from "zod";
 
+import { attachMedia } from "@/features/media/repository";
 import { user } from "@/server/db/schema/auth";
 import { building, reportCategory } from "@/server/db/schema/catalog";
 import {
@@ -361,7 +362,7 @@ export async function changeReportStatus(
 
 export async function resolveReport(
   database: Database,
-  input: { reportId: string; note: string },
+  input: { reportId: string; note: string; afterMediaIds?: string[] },
   actor: TriageActor,
 ): Promise<StatusChange> {
   return database.transaction(
@@ -378,7 +379,17 @@ export async function resolveReport(
         actor,
         patch: { resolutionNote: input.note },
       });
-      await audit(tx, actor, "report.resolve", current.id);
+      if (input.afterMediaIds && input.afterMediaIds.length > 0) {
+        await attachMedia(tx, {
+          draftId: current.id,
+          kind: "report_after",
+          ids: input.afterMediaIds,
+          owner: { reportId: current.id },
+        });
+      }
+      await audit(tx, actor, "report.resolve", current.id, {
+        afterPhotos: input.afterMediaIds?.length ?? 0,
+      });
       return {
         reportId: current.id,
         number: current.number,

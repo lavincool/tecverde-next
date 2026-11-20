@@ -1,5 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 
+import { attachMedia } from "@/features/media/repository";
 import { building, report, reportCategory, reportStatusEvent } from "@/server/db/schema";
 import { hashValue, randomToken } from "@/server/security/hash";
 
@@ -24,7 +25,13 @@ export function hashDeviceId(secret: string, deviceId: string): string {
 
 export async function createReportRecord(
   database: Database,
-  input: CreateReportInput & { deviceHash: string; ipHash: string },
+  input: CreateReportInput & {
+    deviceHash: string;
+    ipHash: string;
+    /** The draft id reserved before uploads; photo keys are grouped under it. */
+    id?: string;
+    mediaIds?: string[];
+  },
   secret: string,
 ) {
   const trackingToken = randomToken(32);
@@ -54,6 +61,7 @@ export async function createReportRecord(
       const [created] = await tx
         .insert(report)
         .values({
+          ...(input.id ? { id: input.id } : {}),
           number,
           categoryId: category.id,
           buildingId: campusBuilding.id,
@@ -74,6 +82,15 @@ export async function createReportRecord(
           createdAt: report.createdAt,
         });
       if (!created) throw new Error("Report insertion failed.");
+
+      if (input.mediaIds && input.mediaIds.length > 0) {
+        await attachMedia(tx, {
+          draftId: created.id,
+          kind: "report_before",
+          ids: input.mediaIds,
+          owner: { reportId: created.id },
+        });
+      }
 
       await tx.insert(reportStatusEvent).values({
         reportId: created.id,
