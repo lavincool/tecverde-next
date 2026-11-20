@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 
+import { notifyReportStatusChange } from "@/features/notifications/report-updates";
 import { formText } from "@/lib/form-text";
 import { dashboard } from "@/messages/es-MX/dashboard";
 import { requireStaff, StaffAccessError } from "@/server/auth/guards";
@@ -57,13 +59,14 @@ async function runTriage<Schema extends z.ZodType>(
   run: (
     input: z.output<Schema>,
     actor: Awaited<ReturnType<typeof requireStaff>>,
-  ) => Promise<StatusChange | void>,
+  ) => Promise<(StatusChange & { targetNumber?: number }) | void>,
 ): Promise<TriageActionState> {
   try {
     const actor = await requireStaff(permission);
     const parsed = schema.safeParse(raw);
     if (!parsed.success) return { error: copy.failures.invalid };
-    await run(parsed.data, actor);
+    const change = await run(parsed.data, actor);
+    if (change) after(() => notifyReportStatusChange(change));
     refreshReport(raw.reportId ?? "");
     return { ok: true };
   } catch (error) {
