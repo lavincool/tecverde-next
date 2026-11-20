@@ -1,7 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useMemo, useState } from "react";
 
+import { PhotoPicker } from "@/features/media/components/photo-picker";
+import { mediaLimits } from "@/features/media/keys";
 import { dashboard } from "@/messages/es-MX/dashboard";
 import { reportPriorityLabels, reportStatusLabels } from "@/messages/es-MX/enums";
 
@@ -190,8 +192,16 @@ export function DuplicateForm({ reportId }: { reportId: string }) {
   );
 }
 
-export function ResolveForm({ reportId }: { reportId: string }) {
+export function ResolveForm({
+  reportId,
+  uploadsEnabled,
+}: {
+  reportId: string;
+  uploadsEnabled: boolean;
+}) {
   const [state, action, pending] = useActionState(resolve, {});
+  const [uploading, setUploading] = useState(false);
+  const photoTarget = useMemo(() => ({ scope: "report_after" as const, reportId }), [reportId]);
   return (
     <form action={action} className="grid gap-3">
       <ReportIdField reportId={reportId} />
@@ -209,10 +219,18 @@ export function ResolveForm({ reportId }: { reportId: string }) {
       <p id="resolve-hint" className="text-sm text-muted">
         {copy.resolveHint}
       </p>
+      {uploadsEnabled && (
+        <PhotoPicker
+          target={photoTarget}
+          max={mediaLimits.report_after}
+          name="afterMediaIds"
+          onBusyChange={setUploading}
+        />
+      )}
       <Feedback state={state} pending={pending} />
       <button
         className="button button--primary justify-self-start"
-        disabled={pending}
+        disabled={pending || uploading}
         type="submit"
       >
         {copy.applyResolve}
