@@ -2,10 +2,12 @@
 
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useCallback, useState } from "react";
+import { useActionState, useCallback, useMemo, useState } from "react";
 
 import { CategoryIcon } from "@/features/catalog/category-icon";
 import { DraftGate } from "@/features/media/components/draft-gate";
+import { PhotoPicker } from "@/features/media/components/photo-picker";
+import { mediaLimits } from "@/features/media/keys";
 import { navForward } from "@/lib/navigation";
 import { reports } from "@/messages/es-MX/reports";
 
@@ -28,15 +30,19 @@ function NewReportFormInner({
   categories,
   buildings,
   initialBuildingId,
+  uploadsEnabled,
   onReset,
 }: {
   categories: ReportCatalogCategory[];
   buildings: ReportCatalogBuilding[];
   initialBuildingId: string;
+  uploadsEnabled: boolean;
   onReset: () => void;
 }) {
+  const [uploading, setUploading] = useState(false);
   const [draftToken, setDraftToken] = useState<string>();
   const [gateKey, setGateKey] = useState(0);
+  const photoTarget = useMemo(() => ({ scope: "report" as const, draftToken }), [draftToken]);
   const [state, action, pending] = useActionState(
     async (previous: CreateReportActionState, form: FormData) => {
       const next = await createReport(previous, form);
@@ -275,6 +281,14 @@ function NewReportFormInner({
         )}
       </div>
 
+      {uploadsEnabled && (
+        <PhotoPicker
+          target={photoTarget}
+          max={mediaLimits.report_before}
+          onBusyChange={setUploading}
+        />
+      )}
+
       <div className="grid gap-1.5">
         <label className="report-field" htmlFor="report-description">
           {copy.descriptionLabel}
@@ -365,7 +379,7 @@ function NewReportFormInner({
 
       <button
         className="button button--primary justify-self-start"
-        disabled={pending || !draftToken}
+        disabled={pending || uploading || !draftToken}
         type="submit"
       >
         {pending ? copy.submitting : copy.submit}
@@ -378,10 +392,12 @@ export function NewReportForm({
   categories,
   buildings,
   initialBuildingId = "",
+  uploadsEnabled = false,
 }: {
   categories: ReportCatalogCategory[];
   buildings: ReportCatalogBuilding[];
   initialBuildingId?: string;
+  uploadsEnabled?: boolean;
 }) {
   const [formKey, setFormKey] = useState(0);
 
@@ -395,6 +411,7 @@ export function NewReportForm({
       categories={categories}
       buildings={buildings}
       initialBuildingId={initialBuildingId}
+      uploadsEnabled={uploadsEnabled}
       onReset={resetForm}
     />
   );

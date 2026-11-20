@@ -6,6 +6,7 @@ import { SkeletonCard } from "@/components/feedback/skeleton-card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusChip } from "@/components/ui/status-chip";
 import { CategoryIcon } from "@/features/catalog/category-icon";
+import { PrivatePhotos } from "@/features/media/components/private-photos";
 import {
   AssignForm,
   CommentForm,
@@ -19,6 +20,7 @@ import { getTriageReport } from "@/features/reports/staff-queries";
 import { navBack } from "@/lib/navigation";
 import { dashboard, reports } from "@/messages/es-MX";
 import { reportPriorityLabels, reportStatusLabels } from "@/messages/es-MX/enums";
+import { media } from "@/messages/es-MX/media";
 import { handleStaffPageError } from "@/server/auth/guards";
 
 import type { Metadata } from "next";
@@ -36,7 +38,7 @@ async function TriageView({ params }: PageProps<"/dashboard/reports/[id]">) {
   const { id } = await params;
   const data = await getTriageReport(id).catch(handleStaffPageError);
   if (!data) notFound();
-  const { report, assignable, transitions, can } = data;
+  const { report, assignable, transitions, can, beforePhotos, afterPhotos } = data;
 
   return (
     <div className="grid gap-6">
@@ -104,12 +106,27 @@ async function TriageView({ params }: PageProps<"/dashboard/reports/[id]">) {
                 {report.description}
               </p>
             </div>
+            {beforePhotos.length > 0 && (
+              <div className="grid gap-2 border-t border-line pt-4">
+                <h3 className="text-sm font-semibold text-muted">{media.gallery.label}</h3>
+                <PrivatePhotos
+                  photos={beforePhotos}
+                  label={media.gallery.label}
+                  altFor={media.gallery.reportPhoto}
+                />
+              </div>
+            )}
             {report.resolutionNote && (
               <div className="grid gap-1.5 border-t border-line pt-4">
                 <h3 className="text-sm font-semibold text-muted">{reports.detail.resolution}</h3>
                 <p className="max-w-prose leading-relaxed whitespace-pre-wrap">
                   {report.resolutionNote}
                 </p>
+                <PrivatePhotos
+                  photos={afterPhotos}
+                  label={reports.detail.resolution}
+                  altFor={media.gallery.afterPhoto}
+                />
               </div>
             )}
           </section>
@@ -213,7 +230,7 @@ async function TriageView({ params }: PageProps<"/dashboard/reports/[id]">) {
               <h3 id="triage-resolve" className="font-semibold">
                 {copy.resolve}
               </h3>
-              <ResolveForm reportId={report.id} />
+              <ResolveForm reportId={report.id} uploadsEnabled={data.uploadsEnabled} />
             </section>
           )}
           {can.assign && (

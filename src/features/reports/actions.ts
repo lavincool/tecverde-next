@@ -5,6 +5,7 @@ import { after } from "next/server";
 import { z } from "zod";
 
 import { consumeDraftForDevice, DraftError, readDraftForDevice } from "@/features/media/drafts";
+import { verifiedDraftMedia } from "@/features/media/uploads";
 import { sendReportConfirmation } from "@/features/notifications/report-updates";
 import { formText } from "@/lib/form-text";
 import { errors } from "@/messages/es-MX/errors";
@@ -86,7 +87,7 @@ export async function createReport(
 
   try {
     const secret = requireHashSecret();
-    await readDraftForDevice("report", draftToken);
+    const draft = await readDraftForDevice("report", draftToken);
     const [deviceHash, ipHash] = await Promise.all([ensureDeviceHash(), getRequestIpHash()]);
 
     const limiter = getRateLimiter();
@@ -102,8 +103,17 @@ export async function createReport(
       throw new ReportMutationError("rate_limited");
     }
     await consumeDraftForDevice("report", draftToken);
+    const mediaIds = await verifiedDraftMedia({
+      draftId: draft.draftId,
+      kind: "report_before",
+      ids: form.getAll("mediaIds").filter((value) => typeof value === "string"),
+    });
 
-    const created = await createReportRecord(db, { ...parsed.data, deviceHash, ipHash }, secret);
+    const created = await createReportRecord(
+      db,
+      { ...parsed.data, deviceHash, ipHash, id: draft.draftId, mediaIds },
+      secret,
+    );
     const origin = await getAppOrigin();
     const trackingUrl = new URL(`/reports/track/${created.trackingToken}`, origin).href;
     const reporterEmail = parsed.data.reporterEmail;

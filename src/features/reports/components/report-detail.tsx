@@ -2,11 +2,13 @@ import Link from "next/link";
 
 import { StatusChip } from "@/components/ui/status-chip";
 import { CategoryIcon } from "@/features/catalog/category-icon";
+import { PrivatePhotos } from "@/features/media/components/private-photos";
 import { navBack, navForward } from "@/lib/navigation";
 import { reportPriorityLabels, reportStatusLabels } from "@/messages/es-MX/enums";
+import { media } from "@/messages/es-MX/media";
 import { reports } from "@/messages/es-MX/reports";
 
-import type { ReportDetailData } from "../repository";
+import type { ReportViewerData } from "../queries";
 
 const copy = reports.detail;
 
@@ -21,7 +23,7 @@ export function ReportDetail({
   backHref,
   backLabel,
 }: {
-  report: ReportDetailData;
+  report: ReportViewerData;
   backHref: "/" | "/reports/mine";
   backLabel: string;
 }) {
@@ -78,6 +80,11 @@ export function ReportDetail({
             <p className="max-w-prose leading-relaxed whitespace-pre-wrap">
               {report.resolutionNote}
             </p>
+            <PrivatePhotos
+              photos={report.afterPhotos}
+              label={copy.resolution}
+              altFor={media.gallery.afterPhoto}
+            />
           </div>
         )}
       </section>

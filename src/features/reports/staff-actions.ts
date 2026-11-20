@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 
+import { verifiedDraftMedia } from "@/features/media/uploads";
 import { notifyReportStatusChange } from "@/features/notifications/report-updates";
 import { formText } from "@/lib/form-text";
 import { dashboard } from "@/messages/es-MX/dashboard";
@@ -136,7 +137,14 @@ export async function resolve(_: TriageActionState, form: FormData) {
     { report: ["resolve"] },
     resolveSchema,
     { reportId: formText(form, "reportId"), note: formText(form, "note") },
-    (input, actor) => resolveReport(db, input, actor),
+    async (input, actor) => {
+      const afterMediaIds = await verifiedDraftMedia({
+        draftId: input.reportId,
+        kind: "report_after",
+        ids: form.getAll("afterMediaIds").filter((value) => typeof value === "string"),
+      });
+      return resolveReport(db, { ...input, afterMediaIds }, actor);
+    },
   );
 }
 
