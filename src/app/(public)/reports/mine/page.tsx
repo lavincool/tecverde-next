@@ -6,9 +6,10 @@ import { SkeletonCard } from "@/components/feedback/skeleton-card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusChip } from "@/components/ui/status-chip";
 import { CategoryIcon } from "@/features/catalog/category-icon";
+import { PushToggle } from "@/features/notifications/components/push-toggle";
 import { getDeviceReports } from "@/features/reports/queries";
 import { navForward } from "@/lib/navigation";
-import { nav, reports } from "@/messages/es-MX";
+import { common, nav, reports } from "@/messages/es-MX";
 
 import type { Metadata } from "next";
 
@@ -90,6 +91,7 @@ export default function MyReportsPage() {
         description={reports.mine.description}
         actions={headerActions}
       />
+      <PushToggle audience="device" hint={common.push.reporterHint} />
       <Suspense fallback={loading}>
         <DeviceReportsContent />
       </Suspense>
