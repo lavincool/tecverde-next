@@ -9,6 +9,18 @@
       "timezone": "America/Matamoros",
       "path": "/api/schedules/cleanup-media",
       "requestMethod": "POST"
+    },
+    "purge": {
+      "schedule": "30 3 * * *",
+      "timezone": "America/Matamoros",
+      "path": "/api/schedules/purge",
+      "requestMethod": "POST"
+    },
+    "staff-digest": {
+      "schedule": "0 7 * * 1-5",
+      "timezone": "America/Matamoros",
+      "path": "/api/schedules/staff-digest",
+      "requestMethod": "POST"
     }
   }
 }
