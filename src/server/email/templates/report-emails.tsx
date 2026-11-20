@@ -87,3 +87,60 @@ export function StaffDigestEmail({
     </EmailLayout>
   );
 }
+
+const noFootnotes: string[] = [];
+
+export function ActionEmail({
+  preview,
+  heading,
+  paragraphs,
+  action,
+  footnotes = noFootnotes,
+  secondary,
+  note,
+}: {
+  preview: string;
+  heading: string;
+  paragraphs: string[];
+  action?: { href: string; label: string };
+  footnotes?: string[];
+  secondary?: { intro: string; href: string; label: string };
+  note?: { label: string; body: string };
+}) {
+  return (
+    <EmailLayout preview={preview}>
+      <Heading style={emailStyles.heading}>{heading}</Heading>
+      {paragraphs.map((paragraph) => (
+        <Text key={paragraph} style={emailStyles.text}>
+          {paragraph}
+        </Text>
+      ))}
+      {note && (
+        <>
+          <Text style={emailStyles.muted}>{note.label}</Text>
+          <Text style={emailStyles.note}>{note.body}</Text>
+        </>
+      )}
+      {action && (
+        <Section style={emailStyles.actions}>
+          <Button href={action.href} style={emailStyles.button}>
+            {action.label}
+          </Button>
+        </Section>
+      )}
+      {secondary && (
+        <>
+          <Text style={emailStyles.text}>{secondary.intro}</Text>
+          <Text style={emailStyles.text}>
+            <Link href={secondary.href}>{secondary.label}</Link>
+          </Text>
+        </>
+      )}
+      {footnotes.map((footnote) => (
+        <Text key={footnote} style={emailStyles.muted}>
+          {footnote}
+        </Text>
+      ))}
+    </EmailLayout>
+  );
+}
