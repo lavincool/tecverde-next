@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useActionState, useCallback, useState } from "react";
 
 import { CategoryIcon } from "@/features/catalog/category-icon";
+import { DraftGate } from "@/features/media/components/draft-gate";
 import { navForward } from "@/lib/navigation";
 import { reports } from "@/messages/es-MX/reports";
 
@@ -17,6 +18,7 @@ import {
 } from "../schema";
 import { SimilarReports } from "./similar-reports";
 
+import type { CreateReportActionState } from "../actions";
 import type { ReportCatalogBuilding, ReportCatalogCategory } from "../repository";
 import type { ChangeEvent } from "react";
 
@@ -33,7 +35,19 @@ function NewReportFormInner({
   initialBuildingId: string;
   onReset: () => void;
 }) {
-  const [state, action, pending] = useActionState(createReport, {});
+  const [draftToken, setDraftToken] = useState<string>();
+  const [gateKey, setGateKey] = useState(0);
+  const [state, action, pending] = useActionState(
+    async (previous: CreateReportActionState, form: FormData) => {
+      const next = await createReport(previous, form);
+      if (next.draftExpired) {
+        setDraftToken(undefined);
+        setGateKey((current) => current + 1);
+      }
+      return next;
+    },
+    {},
+  );
   const [categoryId, setCategoryId] = useState("");
   const [buildingId, setBuildingId] = useState(initialBuildingId);
   const [locationReference, setLocationReference] = useState("");
@@ -41,6 +55,10 @@ function NewReportFormInner({
   const [reporterName, setReporterName] = useState("");
   const [reporterEmail, setReporterEmail] = useState("");
   const [copiedUrl, setCopiedUrl] = useState<string>();
+
+  const handleDraft = useCallback((draft: { draftToken: string } | undefined) => {
+    setDraftToken(draft?.draftToken);
+  }, []);
 
   const handleCategoryChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setCategoryId(event.currentTarget.value);
@@ -337,11 +355,14 @@ function NewReportFormInner({
         </div>
       </fieldset>
 
+      <input type="hidden" name="draftToken" value={draftToken ?? ""} />
+      <DraftGate key={gateKey} scope="report" onDraft={handleDraft} />
+
       <output className="report-error text-sm">{state.error}</output>
 
       <button
         className="button button--primary justify-self-start"
-        disabled={pending}
+        disabled={pending || !draftToken}
         type="submit"
       >
         {pending ? copy.submitting : copy.submit}

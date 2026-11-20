@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { consumeDraftForDevice, DraftError, readDraftForDevice } from "@/features/media/drafts";
 import { formText } from "@/lib/form-text";
+import { errors } from "@/messages/es-MX/errors";
 import { reports } from "@/messages/es-MX/reports";
 import { db } from "@/server/db";
 import {
@@ -14,6 +16,7 @@ import {
   requireHashSecret,
 } from "@/server/security/device";
 import { getRateLimiter } from "@/server/security/rate-limit";
+import { publicSubmissionsEnabled } from "@/server/security/submissions";
 
 import { createReportRecord, ReportMutationError } from "./mutations";
 import { confirmReportRecord, listSimilarOpenReports } from "./repository";
@@ -25,6 +28,7 @@ import type { ReportFieldName } from "./schema";
 export type CreateReportActionState = {
   ok?: true;
   error?: string;
+  draftExpired?: true;
   fieldErrors?: Partial<Record<ReportFieldName, string>>;
   values?: Partial<Record<ReportFieldName, string>>;
   report?: {
@@ -56,6 +60,11 @@ export async function createReport(
     reporterEmail: formText(form, "reporterEmail"),
   };
 
+  if (!publicSubmissionsEnabled()) {
+    return { error: errors.submissions.disabled, values: raw };
+  }
+  const draftToken = formText(form, "draftToken");
+
   const parsed = createReportInputSchema.safeParse(raw);
   if (!parsed.success) {
     const fieldErrors: Partial<Record<ReportFieldName, string>> = {};
@@ -74,6 +83,7 @@ export async function createReport(
 
   try {
     const secret = requireHashSecret();
+    await readDraftForDevice("report", draftToken);
     const [deviceHash, ipHash] = await Promise.all([ensureDeviceHash(), getRequestIpHash()]);
 
     const limiter = getRateLimiter();
@@ -88,6 +98,7 @@ export async function createReport(
     if (!deviceLimit.allowed || !ipLimit.allowed) {
       throw new ReportMutationError("rate_limited");
     }
+    await consumeDraftForDevice("report", draftToken);
 
     const created = await createReportRecord(db, { ...parsed.data, deviceHash, ipHash }, secret);
     const trackingUrl = new URL(`/reports/track/${created.trackingToken}`, await getAppOrigin())
@@ -105,6 +116,9 @@ export async function createReport(
       },
     };
   } catch (error) {
+    if (error instanceof DraftError) {
+      return { error: errors.submissions[error.reason], values: raw, draftExpired: true };
+    }
     if (error instanceof ReportMutationError) {
       return {
         error: reports.form.failures[error.reason],
@@ -156,6 +170,9 @@ export type ConfirmReportResult = {
 };
 
 export async function confirmReport(reportId: string): Promise<ConfirmReportResult> {
+  if (!publicSubmissionsEnabled()) {
+    return { result: "unavailable", message: errors.submissions.disabled };
+  }
   const parsed = z.uuidv7().safeParse(reportId);
   if (!parsed.success) {
     return { result: "not_found", message: reports.similar.results.not_found };
