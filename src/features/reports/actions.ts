@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { consumeDraftForDevice, DraftError, readDraftForDevice } from "@/features/media/drafts";
 import { verifiedDraftMedia } from "@/features/media/uploads";
-import { sendReportConfirmation } from "@/features/notifications/report-updates";
+import { notifyNewReport, sendReportConfirmation } from "@/features/notifications/report-updates";
 import { formText } from "@/lib/form-text";
 import { errors } from "@/messages/es-MX/errors";
 import { reports } from "@/messages/es-MX/reports";
@@ -116,6 +116,7 @@ export async function createReport(
     );
     const origin = await getAppOrigin();
     const trackingUrl = new URL(`/reports/track/${created.trackingToken}`, origin).href;
+    after(() => notifyNewReport(created.id));
     const reporterEmail = parsed.data.reporterEmail;
     if (reporterEmail) {
       after(() =>
