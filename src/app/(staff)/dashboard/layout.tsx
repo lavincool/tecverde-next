@@ -7,6 +7,7 @@ import { SignOut } from "@/features/staff/components/sign-out";
 import { common, dashboard } from "@/messages/es-MX";
 import { staffRoleLabels } from "@/messages/es-MX/enums";
 import { requireStaffPage } from "@/server/auth/guards";
+import { hasStaffPermission } from "@/server/auth/permissions";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -32,6 +33,16 @@ async function DashboardFrame({ children }: { children: ReactNode }) {
           {!enrollmentRequired && (
             <Link className="staff-nav-link" href="/dashboard">
               {dashboard.nav.home}
+            </Link>
+          )}
+          {!enrollmentRequired && hasStaffPermission(staff.role, { report: ["read"] }) && (
+            <Link className="staff-nav-link" href="/dashboard/reports">
+              {dashboard.nav.reports}
+            </Link>
+          )}
+          {!enrollmentRequired && hasStaffPermission(staff.role, { metrics: ["read"] }) && (
+            <Link className="staff-nav-link" href="/dashboard/metrics">
+              {dashboard.nav.metrics}
             </Link>
           )}
           {staff.role === "admin" && staff.twoFactorEnabled && (

@@ -384,6 +384,28 @@ html:active-view-transition-type(nav-back)::view-transition-new(root) {
   background: var(--surface-hover);
 }
 
+.staff-tab {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10rem;
+  background: var(--surface);
+  padding-inline: 1rem;
+  font-size: 0.875rem;
+  font-weight: 550;
+}
+
+.staff-tab:hover {
+  background: var(--surface-hover);
+}
+
+.staff-tab[aria-current="page"] {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+}
+
 @media (min-width: 64rem) {
   .staff-shell {
     display: grid;

@@ -62,13 +62,18 @@ export async function requireStaff(permission?: StaffPermission, allowEnrollment
   return staff;
 }
 
+/** Maps a staff authorization failure to the matching navigation for a page render. */
+export function handleStaffPageError(error: unknown): never {
+  if (!(error instanceof StaffAccessError)) throw error;
+  if (error.status === 401) redirect("/login");
+  if (error.needsTwoFactor) redirect("/dashboard/settings");
+  notFound();
+}
+
 export async function requireStaffPage(permission?: StaffPermission, allowEnrollment = false) {
   try {
     return await requireStaff(permission, allowEnrollment);
   } catch (error) {
-    if (!(error instanceof StaffAccessError)) throw error;
-    if (error.status === 401) redirect("/login");
-    if (error.needsTwoFactor) redirect("/dashboard/settings");
-    return notFound();
+    return handleStaffPageError(error);
   }
 }
