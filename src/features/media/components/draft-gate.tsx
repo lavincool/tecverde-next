@@ -20,6 +20,7 @@ const baseOptions = {
 const optionsByScope = {
   report: { ...baseOptions, action: "report_draft" },
   pet: { ...baseOptions, action: "pet_draft" },
+  request: { ...baseOptions, action: "request_draft" },
 } as const;
 
 /**
@@ -30,7 +31,7 @@ export function DraftGate({
   scope,
   onDraft,
 }: {
-  scope: "report" | "pet";
+  scope: "report" | "pet" | "request";
   onDraft: (draft: { draftId: string; draftToken: string } | undefined) => void;
 }) {
   const [error, setError] = useState<string>();

@@ -550,3 +550,86 @@ textarea.report-input {
 .report-card:active {
   scale: 0.99;
 }
+
+.pet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 40rem) {
+  .pet-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .pet-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.pet-card {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  transition:
+    scale 150ms,
+    box-shadow 150ms;
+}
+
+.pet-card:hover {
+  box-shadow: var(--tv-shadow);
+}
+
+.pet-card:active {
+  scale: 0.99;
+}
+
+.pet-card-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.pet-carousel {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border-radius: var(--radius);
+}
+
+.pet-carousel-slide {
+  position: relative;
+  flex: 0 0 100%;
+  aspect-ratio: 4 / 3;
+  scroll-snap-align: start;
+  background-color: var(--surface);
+}
+
+.pet-chip-option {
+  display: inline-flex;
+  min-height: 2.5rem;
+  cursor: pointer;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10rem;
+  padding-inline: 1rem;
+  font-size: 0.875rem;
+}
+
+.pet-chip-option:has(:checked) {
+  border-color: var(--accent);
+  background-color: color-mix(in oklab, var(--accent) 12%, var(--background));
+}
+
+.pet-chip-option:has(:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
