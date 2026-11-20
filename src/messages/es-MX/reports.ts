@@ -56,6 +56,8 @@ export const reports = {
       copied: "Enlace copiado",
       viewReport: "Ver seguimiento",
       viewMine: "Ir a mis reportes",
+      emailSent:
+        "Te enviamos un correo para confirmar tu dirección. Después de confirmarla te avisaremos cuando cambie el estado.",
     },
   },
   similar: {
