@@ -1,10 +1,12 @@
 import "server-only";
 
+import { signedReportPhotos } from "@/features/media/queries";
 import { dashboard } from "@/messages/es-MX/dashboard";
 import { reportPriorityLabels, reportStatusLabels } from "@/messages/es-MX/enums";
 import { requireStaff } from "@/server/auth/guards";
 import { hasStaffPermission } from "@/server/auth/permissions";
 import { db } from "@/server/db";
+import { isStorageConfigured } from "@/server/storage/r2";
 
 import { listReportsForExport, toCsv } from "./export";
 import { listActiveCatalog } from "./repository";
@@ -73,8 +75,12 @@ export async function getTriageReport(id: string) {
     listAssignableStaff(db),
   ]);
   if (!record) return null;
+  const photos = await signedReportPhotos(record.id, ["report_before", "report_after"]);
   return {
     report: record,
+    beforePhotos: photos.filter((photo) => photo.kind === "report_before"),
+    afterPhotos: photos.filter((photo) => photo.kind === "report_after"),
+    uploadsEnabled: isStorageConfigured(),
     assignable,
     transitions: nextReportStatuses(record.status, staff.role),
     can: {

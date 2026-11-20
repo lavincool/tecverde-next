@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { NewReportForm } from "@/features/reports/components/new-report-form";
 import { getReportCatalog } from "@/features/reports/queries";
 import { reports } from "@/messages/es-MX";
+import { isStorageConfigured } from "@/server/storage/r2";
 
 import type { Metadata } from "next";
 
@@ -40,6 +41,7 @@ async function NewReportContent({ searchParams }: PageProps<"/reports/new">) {
       categories={catalog.categories}
       buildings={catalog.buildings}
       initialBuildingId={initialBuildingId}
+      uploadsEnabled={isStorageConfigured()}
     />
   );
 }
