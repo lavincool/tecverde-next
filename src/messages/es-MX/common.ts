@@ -39,6 +39,30 @@ export const common = {
     ios: "En iPhone, toca Compartir y luego «Agregar a inicio» para usar TecVerde como app.",
     dismiss: "Ocultar",
   },
+  push: {
+    enable: "Activar notificaciones",
+    disable: "Desactivar notificaciones",
+    enabled: "Notificaciones activas en este navegador.",
+    denied: "Las notificaciones están bloqueadas. Actívalas en la configuración del navegador.",
+    unsupported:
+      "Este navegador no admite notificaciones. En iPhone, instala TecVerde en tu pantalla de inicio.",
+    failed: "No pudimos activar las notificaciones. Inténtalo de nuevo.",
+    reporterHint: "Recibe un aviso en este dispositivo cuando cambie el estado de tus reportes.",
+    staffTitle: "Notificaciones del navegador",
+    staffHint: "Recibe avisos de nuevos reportes o publicaciones pendientes según tu rol.",
+    reportUpdate: (number: number, status: string) => ({
+      title: `Reporte #${number}`,
+      body: `Tu reporte cambió a «${status}».`,
+    }),
+    newReport: (number: number, category: string) => ({
+      title: "Nuevo reporte",
+      body: `Reporte #${number}: ${category}`,
+    }),
+    pendingPost: (name: string) => ({
+      title: "Publicación pendiente",
+      body: `La publicación de ${name} espera revisión.`,
+    }),
+  },
   ui: {
     title: "Galería de componentes",
     description: "Estados y componentes de TecVerde.",
