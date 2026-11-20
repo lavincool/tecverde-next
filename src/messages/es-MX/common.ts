@@ -5,6 +5,7 @@ export const common = {
   goHome: "Volver al inicio",
   retry: "Intentar de nuevo",
   loading: "Cargando",
+  separator: " · ",
   home: {
     title: "Cuidemos nuestro campus",
     description:

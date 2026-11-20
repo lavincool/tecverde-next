@@ -1,4 +1,4 @@
-import { BarChart3, Inbox } from "lucide-react";
+import { BarChart3, Inbox, PawPrint } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -19,10 +19,16 @@ async function Dashboard() {
   const staff = await requireStaffPage();
   const canReports = hasStaffPermission(staff.role, { report: ["read"] });
   const canMetrics = hasStaffPermission(staff.role, { metrics: ["read"] });
+  const canAdoption = hasStaffPermission(staff.role, { pet: ["moderate"] });
   const metrics = canMetrics ? await loadReportMetrics(db) : undefined;
 
   const tools = [
     canReports && { href: "/dashboard/reports" as const, label: copy.goToReports, icon: Inbox },
+    canAdoption && {
+      href: "/dashboard/adoption" as const,
+      label: copy.goToAdoption,
+      icon: PawPrint,
+    },
     canMetrics && { href: "/dashboard/metrics" as const, label: copy.goToMetrics, icon: BarChart3 },
   ].filter((tool) => tool !== false);
 

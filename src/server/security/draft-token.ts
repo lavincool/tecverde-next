@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { hashValue, randomToken, secureEqual } from "./hash";
 
-export const draftScopes = ["report", "pet"] as const;
+export const draftScopes = ["report", "pet", "request"] as const;
 export type DraftScope = (typeof draftScopes)[number];
 
 export const DRAFT_LIFETIME_MS = 30 * 60 * 1000;

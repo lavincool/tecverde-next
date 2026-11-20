@@ -5,3 +5,4 @@ export { adoption } from "./adoption";
 export { dashboard } from "./dashboard";
 export { errors } from "./errors";
 export { seo } from "./seo";
+export { privacy } from "./privacy";
