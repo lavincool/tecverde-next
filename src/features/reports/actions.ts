@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { formText } from "@/lib/form-text";
 import { reports } from "@/messages/es-MX/reports";
@@ -8,14 +9,17 @@ import { db } from "@/server/db";
 import {
   ensureDeviceHash,
   getAppOrigin,
+  getDeviceHash,
   getRequestIpHash,
   requireHashSecret,
 } from "@/server/security/device";
 import { getRateLimiter } from "@/server/security/rate-limit";
 
 import { createReportRecord, ReportMutationError } from "./mutations";
+import { confirmReportRecord, listSimilarOpenReports } from "./repository";
 import { createReportInputSchema, reportFieldNames } from "./schema";
 
+import type { ConfirmationResult, SimilarReport } from "./repository";
 import type { ReportFieldName } from "./schema";
 
 export type CreateReportActionState = {
@@ -111,5 +115,64 @@ export async function createReport(
       error: reports.form.unavailable,
       values: raw,
     };
+  }
+}
+
+const similarInputSchema = z.object({ categoryId: z.uuidv7(), buildingId: z.uuidv7() });
+const SIMILAR_LOOKUP_LIMIT = 60;
+const CONFIRM_LIMIT = 30;
+const CONFIRM_WINDOW_SECONDS = 3600;
+
+export type SimilarReportsResult =
+  | { status: "ready"; reports: SimilarReport[] }
+  | { status: "unavailable" };
+
+export async function findSimilarReports(input: {
+  categoryId: string;
+  buildingId: string;
+}): Promise<SimilarReportsResult> {
+  const parsed = similarInputSchema.safeParse(input);
+  if (!parsed.success) return { status: "ready", reports: [] };
+  try {
+    const deviceHash = await getDeviceHash();
+    const ipHash = await getRequestIpHash();
+    const limit = await getRateLimiter().consume(
+      `tecverde:report:similar:${deviceHash ?? ipHash}`,
+      SIMILAR_LOOKUP_LIMIT,
+      REPORT_RATE_WINDOW_SECONDS,
+    );
+    if (!limit.allowed) return { status: "unavailable" };
+    const similar = await listSimilarOpenReports(db, { ...parsed.data, deviceHash });
+    return { status: "ready", reports: similar };
+  } catch {
+    return { status: "unavailable" };
+  }
+}
+
+export type ConfirmReportResult = {
+  result: ConfirmationResult | "rate_limited" | "unavailable";
+  confirmationsCount?: number;
+  message: string;
+};
+
+export async function confirmReport(reportId: string): Promise<ConfirmReportResult> {
+  const parsed = z.uuidv7().safeParse(reportId);
+  if (!parsed.success) {
+    return { result: "not_found", message: reports.similar.results.not_found };
+  }
+  try {
+    const deviceHash = await ensureDeviceHash();
+    const limit = await getRateLimiter().consume(
+      `tecverde:report:confirm:${deviceHash}`,
+      CONFIRM_LIMIT,
+      CONFIRM_WINDOW_SECONDS,
+    );
+    if (!limit.allowed) {
+      return { result: "rate_limited", message: reports.similar.results.rate_limited };
+    }
+    const outcome = await confirmReportRecord(db, { reportId: parsed.data, deviceHash });
+    return { ...outcome, message: reports.similar.results[outcome.result] };
+  } catch {
+    return { result: "unavailable", message: reports.similar.results.unavailable };
   }
 }
