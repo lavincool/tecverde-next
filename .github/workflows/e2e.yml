@@ -1,0 +1,45 @@
+name: E2E
+
+# Runs the Playwright suite against every successful Vercel preview deployment.
+on: deployment_status
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.event.deployment.sha }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      startsWith(github.event.deployment.environment, 'Preview')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.deployment.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock') }}
+      - run: bun install --frozen-lockfile
+      - run: bunx --no-install playwright install --with-deps chromium webkit
+      - name: Run Playwright against the preview
+        run: bun run test:e2e
+        env:
+          CI: "true"
+          PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-${{ github.event.deployment.sha }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
