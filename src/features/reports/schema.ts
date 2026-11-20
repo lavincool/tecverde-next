@@ -4,6 +4,8 @@ export const REPORT_LOCATION_MAX_LENGTH = 120;
 export const REPORT_DESCRIPTION_MAX_LENGTH = 500;
 export const REPORT_REPORTER_NAME_MAX_LENGTH = 100;
 export const REPORT_REPORTER_EMAIL_MAX_LENGTH = 254;
+export const TRIAGE_NOTE_MAX_LENGTH = 500;
+export const TRIAGE_COMMENT_MAX_LENGTH = 1000;
 
 export const reportFieldNames = [
   "categoryId",
