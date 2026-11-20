@@ -28,6 +28,17 @@ export const common = {
         "Listo. Enviamos tu solicitud a la persona que publicó al animal y al equipo de moderación.",
     },
   },
+  offline: {
+    title: "Sin conexión",
+    description:
+      "No hay conexión a internet. Revisa tu red e inténtalo de nuevo. Las páginas que ya visitaste pueden seguir disponibles.",
+    retry: "Reintentar",
+  },
+  install: {
+    title: "Instala TecVerde",
+    ios: "En iPhone, toca Compartir y luego «Agregar a inicio» para usar TecVerde como app.",
+    dismiss: "Ocultar",
+  },
   ui: {
     title: "Galería de componentes",
     description: "Estados y componentes de TecVerde.",
