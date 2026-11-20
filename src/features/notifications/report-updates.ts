@@ -1,16 +1,19 @@
 import "server-only";
 
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
+import { common } from "@/messages/es-MX/common";
 import { emails } from "@/messages/es-MX/emails";
 import { reportStatusLabels } from "@/messages/es-MX/enums";
 import { db } from "@/server/db";
+import { reportCategory } from "@/server/db/schema/catalog";
 import { report } from "@/server/db/schema/reports";
 import { sendEmail } from "@/server/email/send";
 import { ReportConfirmEmail, ReportStatusEmail } from "@/server/email/templates/report-emails";
 import { requireHashSecret } from "@/server/security/device";
 
 import { issueActionToken } from "./action-tokens";
+import { pushToDevice, pushToStaff } from "./push";
 
 import type { StatusChange } from "@/features/reports/triage";
 
@@ -47,23 +50,31 @@ export async function sendReportConfirmation(input: {
   }
 }
 
-/** Emails the reporter about a status change, only after they confirmed their address. */
+/**
+ * Tells the reporter about a status change: a push to the browsers that opted in on their
+ * device, and an email only after they confirmed their address.
+ */
 export async function notifyReportStatusChange(change: StatusChange & { targetNumber?: number }) {
   try {
     const [row] = await db
-      .select({ email: report.reporterEmail })
+      .select({
+        id: report.id,
+        email: report.reporterEmail,
+        emailVerifiedAt: report.reporterEmailVerifiedAt,
+        deviceHash: report.deviceHash,
+      })
       .from(report)
-      .where(
-        and(
-          eq(report.id, change.reportId),
-          isNotNull(report.reporterEmailVerifiedAt),
-          isNull(report.deletedAt),
-        ),
-      )
+      .where(and(eq(report.id, change.reportId), isNull(report.deletedAt)))
       .limit(1);
-    if (!row?.email) return;
+    if (!row) return;
 
     const statusLabel = reportStatusLabels[change.to];
+    await pushToDevice(row.deviceHash, {
+      ...common.push.reportUpdate(change.number, statusLabel),
+      url: `/reports/${row.id}`,
+      tag: `report-${row.id}`,
+    });
+    if (!row.email || !row.emailVerifiedAt) return;
     await sendEmail({
       to: row.email,
       subject: emails.reportStatus.subject(change.number, statusLabel),
@@ -76,5 +87,25 @@ export async function notifyReportStatusChange(change: StatusChange & { targetNu
     });
   } catch (error) {
     logFailure("report status", error);
+  }
+}
+
+/** Alerts maintenance staff who enabled browser notifications about a new report. */
+export async function notifyNewReport(reportId: string) {
+  try {
+    const [row] = await db
+      .select({ number: report.number, category: reportCategory.name })
+      .from(report)
+      .innerJoin(reportCategory, eq(reportCategory.id, report.categoryId))
+      .where(eq(report.id, reportId))
+      .limit(1);
+    if (!row) return;
+    await pushToStaff("new_reports", {
+      ...common.push.newReport(row.number, row.category),
+      url: `/dashboard/reports/${reportId}`,
+      tag: `new-report-${reportId}`,
+    });
+  } catch (error) {
+    logFailure("new report", error);
   }
 }
