@@ -6,6 +6,12 @@ Routes under `src/app` render pages and call feature data-access functions. Doma
 
 Reports can be read by authorized staff, by the reporter's original device, or through a secret tracking link. Report photos use private object storage. Adoption posts become public after email verification and staff approval.
 
+## Operations
+
+- [Deployment](deployment.md): environments, variables, schedules and CI.
+- [Runbook](runbook.md): smoke test, rollback, restore and abuse response.
+- [Media storage](r2.md): R2 buckets, keys and CORS.
+
 ## Decisions
 
 - [ADR 0001 — Turso and Drizzle](adr/0001-turso-drizzle-rc.md)

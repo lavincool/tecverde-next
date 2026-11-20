@@ -19,6 +19,8 @@ bun run test
 bun run build
 ```
 
+Run `bun run test:e2e` after `bun run build` to test the production server, or set `PLAYWRIGHT_BASE_URL` to test a running deployment.
+
 Run `bun run format` to apply formatting. Use `bun run start` to serve a completed production build locally.
 
 ## Local database and staff
