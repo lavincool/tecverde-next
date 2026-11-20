@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 
 import {
   createDeviceCookie,
-  deviceCookieMaxAge,
   deviceCookieName,
+  deviceCookieOptions,
   readDeviceCookie,
 } from "@/server/security/device-cookie";
 
@@ -25,13 +25,7 @@ export function proxy(request: NextRequest) {
     secret.length >= 32 &&
     !readDeviceCookie(request.cookies.get(deviceCookieName)?.value, secret)
   ) {
-    response.cookies.set(deviceCookieName, createDeviceCookie(secret), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: deviceCookieMaxAge,
-    });
+    response.cookies.set(deviceCookieName, createDeviceCookie(secret), deviceCookieOptions());
   }
   return response;
 }

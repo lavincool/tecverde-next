@@ -3,6 +3,16 @@ import { hashValue, randomToken, secureEqual } from "./hash";
 export const deviceCookieName = "tv_device";
 export const deviceCookieMaxAge = 400 * 24 * 60 * 60;
 
+export function deviceCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: deviceCookieMaxAge,
+  };
+}
+
 export function createDeviceCookie(secret: string) {
   const id = randomToken(16);
   return `${id}.${hashValue(secret, "device-cookie", id)}`;
