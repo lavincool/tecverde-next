@@ -40,6 +40,11 @@ async function DashboardFrame({ children }: { children: ReactNode }) {
               {dashboard.nav.reports}
             </Link>
           )}
+          {!enrollmentRequired && hasStaffPermission(staff.role, { pet: ["moderate"] }) && (
+            <Link className="staff-nav-link" href="/dashboard/adoption">
+              {dashboard.nav.adoption}
+            </Link>
+          )}
           {!enrollmentRequired && hasStaffPermission(staff.role, { metrics: ["read"] }) && (
             <Link className="staff-nav-link" href="/dashboard/metrics">
               {dashboard.nav.metrics}
