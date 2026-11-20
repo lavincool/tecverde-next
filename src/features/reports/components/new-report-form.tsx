@@ -15,6 +15,7 @@ import {
   REPORT_REPORTER_EMAIL_MAX_LENGTH,
   REPORT_REPORTER_NAME_MAX_LENGTH,
 } from "../schema";
+import { SimilarReports } from "./similar-reports";
 
 import type { ReportCatalogBuilding, ReportCatalogCategory } from "../repository";
 import type { ChangeEvent } from "react";
@@ -24,15 +25,17 @@ const copy = reports.form;
 function NewReportFormInner({
   categories,
   buildings,
+  initialBuildingId,
   onReset,
 }: {
   categories: ReportCatalogCategory[];
   buildings: ReportCatalogBuilding[];
+  initialBuildingId: string;
   onReset: () => void;
 }) {
   const [state, action, pending] = useActionState(createReport, {});
   const [categoryId, setCategoryId] = useState("");
-  const [buildingId, setBuildingId] = useState("");
+  const [buildingId, setBuildingId] = useState(initialBuildingId);
   const [locationReference, setLocationReference] = useState("");
   const [description, setDescription] = useState("");
   const [reporterName, setReporterName] = useState("");
@@ -219,6 +222,8 @@ function NewReportFormInner({
         )}
       </div>
 
+      <SimilarReports categoryId={categoryId} buildingId={buildingId} />
+
       <div className="grid gap-1.5">
         <label className="report-field" htmlFor="report-location">
           {copy.locationLabel}
@@ -348,9 +353,11 @@ function NewReportFormInner({
 export function NewReportForm({
   categories,
   buildings,
+  initialBuildingId = "",
 }: {
   categories: ReportCatalogCategory[];
   buildings: ReportCatalogBuilding[];
+  initialBuildingId?: string;
 }) {
   const [formKey, setFormKey] = useState(0);
 
@@ -363,6 +370,7 @@ export function NewReportForm({
       key={formKey}
       categories={categories}
       buildings={buildings}
+      initialBuildingId={initialBuildingId}
       onReset={resetForm}
     />
   );

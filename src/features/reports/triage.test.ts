@@ -18,6 +18,7 @@ import { migrateDatabase } from "../../../scripts/db-migrate";
 import { seedCatalog } from "../../../scripts/seed";
 import { csvCell, toCsv } from "./export";
 import { createReportRecord } from "./mutations";
+import { confirmReportRecord, listSimilarOpenReports } from "./repository";
 import { canTransitionReport, nextReportStatuses } from "./status-machine";
 import {
   addReportComment,
@@ -402,5 +403,80 @@ describe("csv export", () => {
     expect(csvCell(-3)).toBe("-3");
     expect(csvCell(null)).toBe("");
     expect(toCsv(["A", "B"], [[1, "x\ny"]])).toBe('﻿A,B\r\n1,"x\ny"\r\n');
+  });
+});
+
+describe("similar reports and confirmations", () => {
+  test("list open reports in the same place with minimal fields and count one confirmation per device", async () => {
+    await withDatabase(async (database) => {
+      const actor: TriageActor = {
+        id: await insertStaff(database, "maintenance", "Ana"),
+        role: "maintenance",
+      };
+      const original = await createReport(database, "device-original");
+      const closed = await createReport(database, "device-closed");
+      await changeReportStatus(
+        database,
+        { reportId: closed.id, status: "dismissed", note: null },
+        actor,
+      );
+      const [row] = await database.select().from(report).where(eq(report.id, original.id));
+      if (!row) throw new Error("Expected report.");
+
+      const similar = await listSimilarOpenReports(database, {
+        categoryId: row.categoryId,
+        buildingId: row.buildingId,
+        deviceHash: "device-visitor",
+      });
+      expect(similar.map((item) => item.id)).toEqual([original.id]);
+      expect(Object.keys(similar[0] ?? {}).toSorted()).toEqual([
+        "alreadyConfirmed",
+        "buildingShortName",
+        "categoryName",
+        "confirmationsCount",
+        "createdAt",
+        "id",
+        "isOwn",
+        "locationReference",
+        "status",
+      ]);
+      expect(similar[0]).toMatchObject({ isOwn: false, alreadyConfirmed: false });
+
+      expect(
+        await confirmReportRecord(database, {
+          reportId: original.id,
+          deviceHash: "device-visitor",
+        }),
+      ).toEqual({ result: "confirmed", confirmationsCount: 1 });
+      expect(
+        await confirmReportRecord(database, {
+          reportId: original.id,
+          deviceHash: "device-visitor",
+        }),
+      ).toEqual({ result: "already_confirmed", confirmationsCount: 1 });
+      expect(
+        await confirmReportRecord(database, {
+          reportId: original.id,
+          deviceHash: "device-original",
+        }),
+      ).toEqual({ result: "own_report", confirmationsCount: 1 });
+      expect(
+        (await confirmReportRecord(database, { reportId: closed.id, deviceHash: "device-visitor" }))
+          .result,
+      ).toBe("not_found");
+
+      const [visitorView] = await listSimilarOpenReports(database, {
+        categoryId: row.categoryId,
+        buildingId: row.buildingId,
+        deviceHash: "device-visitor",
+      });
+      expect(visitorView).toMatchObject({ alreadyConfirmed: true, confirmationsCount: 1 });
+      const [ownerView] = await listSimilarOpenReports(database, {
+        categoryId: row.categoryId,
+        buildingId: row.buildingId,
+        deviceHash: "device-original",
+      });
+      expect(ownerView?.isOwn).toBe(true);
+    });
   });
 });

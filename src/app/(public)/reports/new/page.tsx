@@ -12,7 +12,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: reports.new.title };
 
-async function NewReportContent() {
+async function NewReportContent({ searchParams }: PageProps<"/reports/new">) {
+  const { building } = await searchParams;
   const catalog = await getReportCatalog();
   if (catalog.status === "unavailable") {
     return (
@@ -32,17 +33,25 @@ async function NewReportContent() {
       />
     );
   }
-  return <NewReportForm categories={catalog.categories} buildings={catalog.buildings} />;
+  const buildingSlug = Array.isArray(building) ? building[0] : building;
+  const initialBuildingId = catalog.buildings.find((item) => item.slug === buildingSlug)?.id ?? "";
+  return (
+    <NewReportForm
+      categories={catalog.categories}
+      buildings={catalog.buildings}
+      initialBuildingId={initialBuildingId}
+    />
+  );
 }
 
 const loading = <SkeletonCard />;
 
-export default function NewReportPage() {
+export default function NewReportPage(props: PageProps<"/reports/new">) {
   return (
     <div className="grid gap-7">
       <PageHeader title={reports.new.title} description={reports.new.description} />
       <Suspense fallback={loading}>
-        <NewReportContent />
+        <NewReportContent {...props} />
       </Suspense>
     </div>
   );

@@ -58,6 +58,39 @@ export const reports = {
       viewMine: "Ir a mis reportes",
     },
   },
+  similar: {
+    title: "¿Es alguno de estos?",
+    description:
+      "Ya hay reportes abiertos de este tipo en el mismo lugar. Si es el mismo problema, confírmalo en lugar de enviar uno nuevo.",
+    loading: "Buscando reportes parecidos…",
+    confirm: "Yo también",
+    confirmLabel: (location: string) => `Yo también lo vi: ${location}`,
+    confirmed: "Confirmado",
+    own: "Tu reporte",
+    continue: "Es otro problema, continuar con mi reporte",
+    done: "Gracias. Tu confirmación ayuda a priorizar la atención.",
+    backHome: "Volver al inicio",
+    age: (createdAt: Date, now: Date) => {
+      const days = Math.floor((now.getTime() - createdAt.getTime()) / 86_400_000);
+      if (days <= 0) return "Hoy";
+      if (days === 1) return "Hace 1 día";
+      return `Hace ${days} días`;
+    },
+    confirmations: (count: number) =>
+      count === 0
+        ? "Sin confirmaciones"
+        : count === 1
+          ? "1 confirmación"
+          : `${count} confirmaciones`,
+    results: {
+      confirmed: "Gracias. Registramos tu confirmación.",
+      already_confirmed: "Ya habías confirmado este reporte desde este dispositivo.",
+      own_report: "Este reporte se envió desde este dispositivo.",
+      not_found: "Este reporte ya fue atendido o cerrado.",
+      rate_limited: "Has confirmado varios reportes seguidos. Inténtalo más tarde.",
+      unavailable: "No pudimos registrar tu confirmación. Inténtalo de nuevo.",
+    },
+  },
   mine: {
     title: "Mis reportes",
     description: "Consulta los reportes enviados desde este dispositivo.",
