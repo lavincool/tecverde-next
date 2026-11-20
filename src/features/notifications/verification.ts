@@ -1,5 +1,6 @@
 import { and, eq, isNull } from "drizzle-orm";
 
+import { markPosterEmailVerified, markRequestEmailVerified } from "@/features/adoption/repository";
 import { report } from "@/server/db/schema/reports";
 
 import { consumeActionToken } from "./action-tokens";
@@ -27,15 +28,9 @@ const handlers: Partial<Record<ActionTokenPurpose, VerificationHandler>> = {
       .returning({ id: report.id });
     return updated.length > 0;
   },
+  verify_pet_post: (tx, subjectId, now) => markPosterEmailVerified(tx, subjectId, now),
+  verify_adoption_request: (tx, subjectId, now) => markRequestEmailVerified(tx, subjectId, now),
 };
-
-/** Lets other features handle their own double opt-in purposes. */
-export function registerVerificationHandler(
-  purpose: ActionTokenPurpose,
-  handler: VerificationHandler,
-) {
-  handlers[purpose] = handler;
-}
 
 /** Consumes a double opt-in token and applies its effect in one transaction. */
 export async function applyEmailVerification(
