@@ -51,6 +51,11 @@ async function DashboardFrame({ children }: { children: ReactNode }) {
             </Link>
           )}
           {staff.role === "admin" && staff.twoFactorEnabled && (
+            <Link className="staff-nav-link" href="/dashboard/catalog">
+              {dashboard.nav.catalog}
+            </Link>
+          )}
+          {staff.role === "admin" && staff.twoFactorEnabled && (
             <Link className="staff-nav-link" href="/dashboard/staff">
               {dashboard.nav.staff}
             </Link>
