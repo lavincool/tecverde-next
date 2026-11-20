@@ -27,6 +27,56 @@ export const emails = {
     unsubscribe:
       "Si ya no quieres recibir estos avisos, responde al personal del campus para darte de baja.",
   },
+  petConfirm: {
+    subject: (name: string) => `Confirma tu publicación de ${name}`,
+    preview: "Confirma tu correo para enviar la publicación a revisión.",
+    heading: "Confirma tu publicación",
+    body: (name: string) =>
+      `Recibimos la publicación de ${name}. Confirma tu correo para que el equipo de moderación la revise.`,
+    confirm: "Confirmar mi correo",
+    manageIntro:
+      "Guarda este enlace privado. Con él verás las solicitudes de adopción, actualizarás el estado y compartirás la historia cuando encuentre hogar:",
+    manage: "Administrar publicación",
+    expires: "El enlace de confirmación vence en 48 horas. El enlace de administración no vence.",
+  },
+  petModeration: {
+    approvedSubject: (name: string) => `${name} ya está publicado en TecVerde`,
+    approvedHeading: "Tu publicación fue aprobada",
+    approvedBody: (name: string) =>
+      `El perfil de ${name} ya es visible en la galería de adopción. Te avisaremos cuando alguien envíe una solicitud.`,
+    view: "Ver publicación",
+    rejectedSubject: (name: string) => `Tu publicación de ${name} no fue aprobada`,
+    rejectedHeading: "Tu publicación no fue aprobada",
+    rejectedBody: (name: string) =>
+      `El equipo de moderación revisó la publicación de ${name} y no pudo aprobarla.`,
+    reason: "Motivo:",
+    retry: "Puedes enviar una nueva publicación corrigiendo lo indicado.",
+  },
+  requestConfirm: {
+    subject: (name: string) => `Confirma tu solicitud para adoptar a ${name}`,
+    preview: "Confirma tu correo para enviar tu solicitud de adopción.",
+    heading: "Confirma tu solicitud",
+    body: (name: string) =>
+      `Recibimos tu solicitud para adoptar a ${name}. Confírmala para enviarla a la persona que lo publicó.`,
+    confirm: "Confirmar solicitud",
+    expires: "El enlace vence en 48 horas.",
+  },
+  requestReceived: {
+    subject: (name: string) => `Nueva solicitud de adopción para ${name}`,
+    preview: "Alguien quiere adoptar a un animal que publicaste.",
+    heading: "Nueva solicitud de adopción",
+    posterBody: (name: string) =>
+      `Alguien confirmó una solicitud para adoptar a ${name}. Ábrela con el enlace privado de administración que recibiste al publicar.`,
+    staffBody: (name: string) => `Hay una nueva solicitud de adopción confirmada para ${name}.`,
+    open: "Abrir solicitudes",
+  },
+  moderationQueue: {
+    subject: "TecVerde: nueva publicación por revisar",
+    preview: "Hay una publicación de adopción pendiente de revisión.",
+    heading: "Publicación pendiente",
+    body: (name: string) => `La publicación de ${name} confirmó su correo y espera revisión.`,
+    open: "Abrir moderación",
+  },
   staffDigest: {
     subject: (count: number) =>
       count === 1 ? "TecVerde: 1 reporte nuevo" : `TecVerde: ${count} reportes nuevos`,
