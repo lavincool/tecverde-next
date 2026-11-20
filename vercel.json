@@ -2,5 +2,13 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "bunVersion": "1.4.x",
   "buildCommand": "bun run vercel-build",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "schedules": {
+    "cleanup-media": {
+      "schedule": "0 */6 * * *",
+      "timezone": "America/Matamoros",
+      "path": "/api/schedules/cleanup-media",
+      "requestMethod": "POST"
+    }
+  }
 }
