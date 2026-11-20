@@ -3,6 +3,7 @@
 import { ClipboardList, House, PawPrint, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 
 import { navBack, navForward } from "@/lib/navigation";
 import { nav } from "@/messages/es-MX";
@@ -14,13 +15,13 @@ const links = [
   { href: "/reports/mine", label: nav.mine, icon: ClipboardList },
 ] as const;
 
-export function PublicNavigation() {
-  const pathname = usePathname();
-
+function NavigationLinks({ pathname }: { pathname: string | null }) {
   return (
     <nav className="public-nav" aria-label={nav.main}>
       {links.map(({ href, label, icon: Icon }) => {
-        const current = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+        const current =
+          pathname !== null &&
+          (pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)));
 
         return (
           <Link
@@ -39,5 +40,20 @@ export function PublicNavigation() {
         );
       })}
     </nav>
+  );
+}
+
+function ActivePublicNavigation() {
+  const pathname = usePathname();
+  return <NavigationLinks pathname={pathname} />;
+}
+
+const fallbackNav = <NavigationLinks pathname={null} />;
+
+export function PublicNavigation() {
+  return (
+    <Suspense fallback={fallbackNav}>
+      <ActivePublicNavigation />
+    </Suspense>
   );
 }

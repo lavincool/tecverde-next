@@ -402,3 +402,129 @@ html:active-view-transition-type(nav-back)::view-transition-new(root) {
     padding: 1rem;
   }
 }
+
+.report-panel {
+  display: grid;
+  align-content: start;
+  gap: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: clamp(1.15rem, 3vw, 1.75rem);
+}
+
+.report-field {
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.875rem;
+  font-weight: 550;
+}
+
+.report-input {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--field-radius);
+  background-color: var(--background);
+  color: var(--foreground);
+  padding: 0.55rem 0.8rem;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+textarea.report-input {
+  min-height: 7.5rem;
+  resize: vertical;
+}
+
+.report-input[aria-invalid="true"] {
+  border-color: light-dark(oklch(0.46 0.19 25), oklch(0.8 0.15 25));
+}
+
+.report-error {
+  color: light-dark(oklch(0.46 0.19 25), oklch(0.8 0.15 25));
+}
+
+.report-category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+@media (min-width: 40rem) {
+  .report-category-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.report-category-option {
+  position: relative;
+  display: flex;
+  min-height: 4.5rem;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--field-radius);
+  background-color: var(--background);
+  padding: 0.85rem;
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    scale 150ms;
+}
+
+.report-category-option:hover {
+  background-color: var(--surface-hover);
+}
+
+.report-category-option:active {
+  scale: 0.98;
+}
+
+.report-category-option:has(:checked) {
+  border-color: var(--accent);
+  background-color: color-mix(in oklab, var(--accent) 10%, var(--background));
+}
+
+.report-category-option:has(:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.report-category-icon {
+  display: grid;
+  width: 2.15rem;
+  height: 2.15rem;
+  place-items: center;
+  border-radius: 99rem;
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+.report-category-option:has(:checked) .report-category-icon {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.report-card {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  padding: 1.25rem;
+  color: var(--foreground);
+  transition:
+    scale 150ms,
+    box-shadow 150ms;
+}
+
+.report-card:hover {
+  box-shadow: var(--tv-shadow);
+}
+
+.report-card:active {
+  scale: 0.99;
+}

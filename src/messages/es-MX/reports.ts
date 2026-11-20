@@ -3,7 +3,6 @@ export const reports = {
   new: {
     title: "Reportar un problema",
     description: "Avisa al personal de mantenimiento sobre una falla en el campus.",
-    empty: "El formulario estará disponible próximamente.",
     catalogEmptyTitle: "El catálogo aún no está listo",
     catalogEmpty: "Por el momento no hay categorías o edificios activos para recibir reportes.",
     unavailableTitle: "No pudimos cargar el formulario",
