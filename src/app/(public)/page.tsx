@@ -1,7 +1,11 @@
 import { ClipboardPlus, HeartHandshake, PawPrint } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { EmptyState } from "@/components/feedback/empty-state";
+import { SkeletonCard } from "@/components/feedback/skeleton-card";
+import { PetCard } from "@/features/adoption/components/pet-card";
+import { getAdoptedStories, getGallery } from "@/features/adoption/queries";
 import { navForward } from "@/lib/navigation";
 import { adoption, common, reports } from "@/messages/es-MX";
 
@@ -19,6 +23,73 @@ const actions = [
     icon: PawPrint,
   },
 ] as const;
+
+async function HomePets() {
+  const [pets, stories] = await Promise.all([
+    getGallery({}).catch(() => []),
+    getAdoptedStories(4).catch(() => []),
+  ]);
+  return (
+    <div className="grid gap-10">
+      <section aria-labelledby="available-pets" className="grid gap-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 id="available-pets" className="text-xl font-semibold tracking-tight">
+            {adoption.gallery.title}
+          </h2>
+          {pets.length > 0 && (
+            <Link className="text-sm underline" href="/adopt" transitionTypes={navForward}>
+              {adoption.gallery.title}
+            </Link>
+          )}
+        </div>
+        {pets.length > 0 ? (
+          <ul className="pet-grid">
+            {pets.slice(0, 4).map((pet) => (
+              <li key={pet.id}>
+                <PetCard pet={pet} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            title={adoption.gallery.emptyTitle}
+            description={adoption.gallery.empty}
+            icon={PawPrint}
+          />
+        )}
+      </section>
+      <section aria-labelledby="recent-adoptions" className="grid gap-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 id="recent-adoptions" className="text-xl font-semibold tracking-tight">
+            {adoption.adopted.title}
+          </h2>
+          {stories.length > 0 && (
+            <Link className="text-sm underline" href="/adopt/adopted" transitionTypes={navForward}>
+              {adoption.adopted.seeAll}
+            </Link>
+          )}
+        </div>
+        {stories.length > 0 ? (
+          <ul className="pet-grid">
+            {stories.map((pet) => (
+              <li key={pet.id}>
+                <PetCard pet={pet} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            title={adoption.adopted.emptyTitle}
+            description={adoption.adopted.empty}
+            icon={HeartHandshake}
+          />
+        )}
+      </section>
+    </div>
+  );
+}
+
+const loading = <SkeletonCard />;
 
 export default function HomePage() {
   return (
@@ -63,28 +134,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="grid gap-7 sm:grid-cols-2 sm:gap-3">
-        <section aria-labelledby="available-pets" className="grid gap-3">
-          <h2 id="available-pets" className="text-xl font-semibold tracking-tight">
-            {adoption.gallery.title}
-          </h2>
-          <EmptyState
-            title={adoption.gallery.emptyTitle}
-            description={adoption.gallery.empty}
-            icon={PawPrint}
-          />
-        </section>
-        <section aria-labelledby="recent-adoptions" className="grid gap-3">
-          <h2 id="recent-adoptions" className="text-xl font-semibold tracking-tight">
-            {adoption.adopted.title}
-          </h2>
-          <EmptyState
-            title={adoption.adopted.emptyTitle}
-            description={adoption.adopted.empty}
-            icon={HeartHandshake}
-          />
-        </section>
-      </div>
+      <Suspense fallback={loading}>
+        <HomePets />
+      </Suspense>
     </div>
   );
 }
