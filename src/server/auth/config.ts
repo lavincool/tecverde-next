@@ -18,19 +18,19 @@ type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 const authEnv = z.object({
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url({ protocol: /^https?$/ }).optional(),
-  UPSTASH_REDIS_REST_URL: z.url().optional(),
-  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
+  KV_REST_API_URL: z.url().optional(),
+  KV_REST_API_TOKEN: z.string().min(1).optional(),
 });
 
 export function readAuthConfig() {
   const env = authEnv.parse({
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || undefined,
-    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || undefined,
-    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || undefined,
+    KV_REST_API_URL: process.env.KV_REST_API_URL || undefined,
+    KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN || undefined,
   });
-  const url = env.UPSTASH_REDIS_REST_URL;
-  const token = env.UPSTASH_REDIS_REST_TOKEN;
+  const url = env.KV_REST_API_URL;
+  const token = env.KV_REST_API_TOKEN;
   const redis =
     url && token ? new Redis({ url, token, automaticDeserialization: false }) : undefined;
   if (!redis && (process.env.VERCEL || url || token))
