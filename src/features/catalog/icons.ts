@@ -1,4 +1,5 @@
 import {
+  AirVent,
   Armchair,
   CircleQuestionMark,
   DropletOff,
@@ -20,5 +21,12 @@ export const categoryIcons = {
   trash: Trash2,
   "lightbulb-off": LightbulbOff,
   armchair: Armchair,
+  "air-vent": AirVent,
   "circle-help": CircleQuestionMark,
 } as const satisfies Record<(typeof initialCategories)[number]["iconKey"], LucideIcon>;
+
+export type CategoryIconKey = keyof typeof categoryIcons;
+
+export function isCategoryIconKey(value: string): value is CategoryIconKey {
+  return Object.hasOwn(categoryIcons, value);
+}

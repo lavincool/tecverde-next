@@ -5,15 +5,13 @@ import { reportPriorities } from "@/features/reports/enums";
 import { building, reportCategory } from "@/server/db/schema/catalog";
 import { auditLog } from "@/server/db/schema/staff";
 
-import { categoryIcons } from "./icons";
+import { isCategoryIconKey } from "./icons";
 
 import type { connectDatabase } from "@/server/db/connection";
 
 type Database = ReturnType<typeof connectDatabase>;
 
-const iconKeySchema = z
-  .string()
-  .refine((value): value is keyof typeof categoryIcons => Object.hasOwn(categoryIcons, value));
+const iconKeySchema = z.string().refine(isCategoryIconKey);
 const slug = z
   .string()
   .trim()

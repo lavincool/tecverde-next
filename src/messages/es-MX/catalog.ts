@@ -33,6 +33,12 @@ export const initialCategories = [
     iconKey: "armchair",
     defaultPriority: "normal",
   },
+  {
+    slug: "air-conditioning",
+    name: "Aire acondicionado con falla",
+    iconKey: "air-vent",
+    defaultPriority: "normal",
+  },
   { slug: "other", name: "Otro", iconKey: "circle-help", defaultPriority: "normal" },
 ] as const satisfies readonly {
   slug: string;
