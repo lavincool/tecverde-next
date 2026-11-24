@@ -21,7 +21,8 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
         </div>
         <Link className="staff-link" href="/login" transitionTypes={navForward}>
           <LogIn aria-hidden="true" size={17} />
-          <span>{nav.login}</span>
+          {/* Staff are a handful of people; keep the public header quiet on phones. */}
+          <span className="sr-only sm:not-sr-only">{nav.login}</span>
         </Link>
       </header>
       <div className="public-shell">

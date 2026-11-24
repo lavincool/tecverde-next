@@ -117,8 +117,10 @@ body {
 
 .staff-link {
   display: inline-flex;
+  min-width: 2.75rem;
   min-height: 2.75rem;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
   padding-inline: 0.35rem;
   border-radius: 99rem;
@@ -624,6 +626,46 @@ textarea.report-input {
 
 .report-card:active {
   scale: 0.99;
+}
+
+.filter-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.filter-panel > summary {
+  display: flex;
+  min-height: 3.25rem;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.15rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  list-style: none;
+}
+
+.filter-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.filter-panel > summary:hover {
+  background-color: var(--surface-hover);
+}
+
+.filter-panel-chevron {
+  margin-inline-start: auto;
+  color: var(--muted);
+  transition: rotate 150ms;
+}
+
+.filter-panel[open] .filter-panel-chevron {
+  rotate: 180deg;
+}
+
+.filter-panel-body {
+  padding: 0.25rem 1.15rem 1.15rem;
 }
 
 .pet-grid {

@@ -1,4 +1,4 @@
-import { HeartHandshake, PawPrint, Plus } from "lucide-react";
+import { ChevronDown, HeartHandshake, PawPrint, Plus, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -57,16 +57,26 @@ const ageOptions = ageGroups.map((value) => ({ value, label: ageGroupLabels[valu
 async function Gallery({ searchParams }: PageProps<"/adopt">) {
   const filters = parseGalleryFilters(await searchParams);
   const [pets, areas] = await Promise.all([getGallery(filters), getCampusAreas()]);
-  const filtered = Object.values(filters).some(Boolean);
+  const activeFilters = Object.values(filters).filter(Boolean).length;
+  const filtered = activeFilters > 0;
   const options = { area: areas.map((area) => ({ value: area.id, label: area.name })) };
 
   return (
     <>
-      <details className="report-panel" open={filtered}>
-        <summary className="cursor-pointer font-semibold">{copy.filters}</summary>
+      <details className="filter-panel" open={filtered}>
+        <summary>
+          <SlidersHorizontal aria-hidden="true" size={18} strokeWidth={1.8} />
+          <span>{copy.filters}</span>
+          {filtered && (
+            <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
+              {copy.activeFilters(activeFilters)}
+            </span>
+          )}
+          <ChevronDown aria-hidden="true" className="filter-panel-chevron" size={18} />
+        </summary>
         <form
           aria-label={copy.filtersLabel}
-          className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5"
+          className="filter-panel-body grid gap-4 sm:grid-cols-3 lg:grid-cols-5"
           method="get"
         >
           <FilterSelect

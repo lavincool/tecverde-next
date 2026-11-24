@@ -8,6 +8,9 @@ export const adoption = {
     filteredEmpty: "Prueba con otros filtros o quítalos para ver a todos.",
     filters: "Filtrar",
     filtersLabel: "Filtros de la galería",
+    activeFilters: (count: number) =>
+      count === 1 ? "1 filtro activo" : `${count} filtros activos`,
+    seeAll: "Ver todos",
     allSpecies: "Todas las especies",
     allSexes: "Cualquier sexo",
     allSizes: "Cualquier tamaño",
