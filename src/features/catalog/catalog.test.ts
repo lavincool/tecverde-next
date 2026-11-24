@@ -1,8 +1,9 @@
 import { expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 import { connectDatabase } from "@/server/db/connection";
-import { auditLog, building, user } from "@/server/db/schema";
+import { auditLog, building, reportCategory, user } from "@/server/db/schema";
 
 import { migrateDatabase } from "../../../scripts/db-migrate";
 import { seedCatalog } from "../../../scripts/seed";
@@ -98,6 +99,45 @@ test("admins create, edit and deactivate catalog entries with unique slugs", asy
     expect(
       (await database.select().from(auditLog)).map((entry) => entry.action).toSorted(),
     ).toEqual(["catalog.create_building", "catalog.create_category", "catalog.update_building"]);
+  } finally {
+    database.$client.close();
+  }
+});
+
+test("the air conditioning migration adds the category only to an existing catalog", async () => {
+  const database = connectDatabase({ url: "file::memory:" });
+  const migration = await Bun.file(
+    new URL(
+      "../../../drizzle/20261124060241_air_conditioning_category/migration.sql",
+      import.meta.url,
+    ),
+  ).text();
+  try {
+    await migrateDatabase(database);
+    // A fresh database keeps an empty catalog for the seed script or the admins to fill.
+    expect(await database.select().from(reportCategory)).toEqual([]);
+
+    await seedCatalog(database);
+    await database.delete(reportCategory).where(eq(reportCategory.slug, "air-conditioning"));
+    await database.$client.executeMultiple(migration);
+    // Running it again, or after an admin created the slug, never duplicates or overwrites it.
+    await database.$client.executeMultiple(migration);
+
+    const rows = await database
+      .select()
+      .from(reportCategory)
+      .where(eq(reportCategory.slug, "air-conditioning"));
+    const [other] = await database
+      .select()
+      .from(reportCategory)
+      .where(eq(reportCategory.slug, "other"));
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      iconKey: "air-vent",
+      isActive: true,
+      sortOrder: other?.sortOrder,
+    });
+    expect(z.uuidv7().safeParse(rows[0]?.id).success).toBe(true);
   } finally {
     database.$client.close();
   }
