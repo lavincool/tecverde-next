@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { CategoryIcon } from "@/features/catalog/category-icon";
 import { BuildingForm, CategoryForm } from "@/features/catalog/components/catalog-forms";
 import { getCatalogForAdmin } from "@/features/catalog/queries";
+import { reportTopicShortLinks } from "@/features/reports/topics";
 import { dashboard } from "@/messages/es-MX";
 import { handleStaffPageError } from "@/server/auth/guards";
 
@@ -77,9 +78,44 @@ async function Catalog() {
           </div>
         </details>
       </section>
+      <section aria-labelledby="catalog-short-links" className="staff-panel">
+        <div className="grid gap-1">
+          <h2 className="text-xl font-semibold" id="catalog-short-links">
+            {copy.shortLinks.title}
+          </h2>
+          <p className="max-w-prose text-sm text-muted">{copy.shortLinks.description}</p>
+        </div>
+        <table className="w-full text-start text-sm">
+          <thead className="text-muted">
+            <tr>
+              <th className="py-2 pe-4 text-start font-medium" scope="col">
+                {copy.shortLinks.path}
+              </th>
+              <th className="py-2 text-start font-medium" scope="col">
+                {copy.shortLinks.categories}
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {topicLinks.map(({ path, rule }) => (
+              <tr key={path}>
+                <td className="py-2 pe-4 font-mono">{path}</td>
+                <td className="py-2 font-mono text-muted">
+                  {[
+                    ...rule.categorySlugs,
+                    ...rule.categorySlugPrefixes.map(copy.shortLinks.prefix),
+                  ].join(", ")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
     </div>
   );
 }
+
+const topicLinks = reportTopicShortLinks();
 
 const loading = <SkeletonCard />;
 
