@@ -133,7 +133,8 @@ export const reports = {
   },
   mine: {
     title: "Mis reportes",
-    description: "Consulta los reportes enviados desde este dispositivo.",
+    description:
+      "Consulta los reportes enviados desde este dispositivo. Si enviaste uno desde otro dispositivo, abre su enlace privado de seguimiento.",
     emptyTitle: "Aún no tienes reportes",
     empty: "Cuando envíes un reporte desde este dispositivo, podrás seguir su estado aquí.",
     unavailableTitle: "No pudimos cargar tus reportes",

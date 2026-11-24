@@ -1,3 +1,4 @@
+import { ClipboardList, Plus } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -9,7 +10,7 @@ import { CategoryIcon } from "@/features/catalog/category-icon";
 import { PushToggle } from "@/features/notifications/components/push-toggle";
 import { getDeviceReports } from "@/features/reports/queries";
 import { navForward } from "@/lib/navigation";
-import { common, nav, reports } from "@/messages/es-MX";
+import { common, reports } from "@/messages/es-MX";
 
 import type { Metadata } from "next";
 
@@ -30,11 +31,11 @@ async function DeviceReportsContent() {
   }
   if (result.reports.length === 0) {
     return (
-      <EmptyState title={reports.mine.emptyTitle} description={reports.mine.empty}>
-        <Link className="button button--primary" href="/reports/new" transitionTypes={navForward}>
-          {nav.report}
-        </Link>
-      </EmptyState>
+      <EmptyState
+        title={reports.mine.emptyTitle}
+        description={reports.mine.empty}
+        icon={ClipboardList}
+      />
     );
   }
 
@@ -79,6 +80,7 @@ async function DeviceReportsContent() {
 const loading = <SkeletonCard />;
 const headerActions = (
   <Link className="button button--primary" href="/reports/new" transitionTypes={navForward}>
+    <Plus aria-hidden="true" size={16} />
     {reports.mine.newReport}
   </Link>
 );
