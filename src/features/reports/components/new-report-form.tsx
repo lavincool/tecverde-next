@@ -1,8 +1,9 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { Check, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useCallback, useMemo, useState } from "react";
+import { useActionState, useCallback, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
 import { CategoryIcon } from "@/features/catalog/category-icon";
 import { DraftGate } from "@/features/media/components/draft-gate";
@@ -22,23 +23,51 @@ import { SimilarReports } from "./similar-reports";
 
 import type { CreateReportActionState } from "../actions";
 import type { ReportCatalogBuilding, ReportCatalogCategory } from "../repository";
-import type { ChangeEvent } from "react";
+import type { ReportTopicKey } from "../topics";
+import type { ChangeEvent, ReactNode } from "react";
 
 const copy = reports.form;
+
+function StepLegend({ step, children }: { step: number; children: ReactNode }) {
+  return (
+    <legend className="report-step-legend">
+      <span aria-hidden="true" className="report-step-number">
+        {step}
+      </span>
+      {children}
+    </legend>
+  );
+}
+
+/** Shows the character count only when the visitor approaches the limit. */
+function CharacterCount({ length, max }: { length: number; max: number }) {
+  if (length < max * 0.8) return null;
+  return <span className="font-mono text-xs">{copy.characterCount(length, max)}</span>;
+}
+
+type NewReportFormProps = {
+  categories: ReportCatalogCategory[];
+  buildings: ReportCatalogBuilding[];
+  /** Categories of the topic the visitor came from, shown before the rest of the catalog. */
+  focusCategoryIds?: string[];
+  initialCategoryId?: string;
+  initialBuildingId?: string;
+  topic?: ReportTopicKey | undefined;
+  uploadsEnabled?: boolean;
+};
+
+const noCategoryIds: string[] = [];
 
 function NewReportFormInner({
   categories,
   buildings,
-  initialBuildingId,
-  uploadsEnabled,
+  focusCategoryIds = noCategoryIds,
+  initialCategoryId = "",
+  initialBuildingId = "",
+  topic,
+  uploadsEnabled = false,
   onReset,
-}: {
-  categories: ReportCatalogCategory[];
-  buildings: ReportCatalogBuilding[];
-  initialBuildingId: string;
-  uploadsEnabled: boolean;
-  onReset: () => void;
-}) {
+}: NewReportFormProps & { onReset: () => void }) {
   const [uploading, setUploading] = useState(false);
   const [draftToken, setDraftToken] = useState<string>();
   const [gateKey, setGateKey] = useState(0);
@@ -54,7 +83,18 @@ function NewReportFormInner({
     },
     {},
   );
-  const [categoryId, setCategoryId] = useState("");
+  const [categoryId, setCategoryId] = useState(initialCategoryId);
+  const [showAllCategories, setShowAllCategories] = useState(
+    () =>
+      focusCategoryIds.length === 0 ||
+      (initialCategoryId !== "" && !focusCategoryIds.includes(initialCategoryId)),
+  );
+  const categoryGrid = useRef<HTMLDivElement>(null);
+  const visibleCategories = useMemo(() => {
+    if (showAllCategories) return categories;
+    return focusCategoryIds.flatMap((id) => categories.filter((category) => category.id === id));
+  }, [categories, focusCategoryIds, showAllCategories]);
+  const topicCopy = topic ? reports.topics[topic] : undefined;
   const [buildingId, setBuildingId] = useState(initialBuildingId);
   const [locationReference, setLocationReference] = useState("");
   const [description, setDescription] = useState("");
@@ -89,6 +129,15 @@ function NewReportFormInner({
   const handleReporterEmailChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setReporterEmail(event.currentTarget.value);
   }, []);
+
+  function revealAllCategories() {
+    const firstHidden = categories.find((category) => !focusCategoryIds.includes(category.id));
+    flushSync(() => setShowAllCategories(true));
+    // The toggle disappears, so keep keyboard focus inside the group on the first new option.
+    const options = categoryGrid.current?.querySelectorAll<HTMLInputElement>("input[type=radio]");
+    const target = [...(options ?? [])].find((option) => option.value === firstHidden?.id);
+    target?.focus();
+  }
 
   async function copyTrackingLink() {
     if (!state.report?.trackingUrl) return;
@@ -183,18 +232,18 @@ function NewReportFormInner({
     : "description-hint";
 
   return (
-    <form action={action} className="report-panel">
+    <form action={action} className="report-panel report-form">
       <fieldset
         aria-describedby={categoryDescribedBy}
         aria-invalid={categoryError ? true : undefined}
-        className="m-0 grid gap-3 border-0 p-0"
+        className="report-step"
       >
-        <legend className="text-sm font-semibold">{copy.categoryLabel}</legend>
+        <StepLegend step={1}>{copy.categoryLabel}</StepLegend>
         <p id="category-hint" className="text-sm text-muted">
-          {copy.categoryHint}
+          {initialCategoryId ? copy.categoryPreselectedHint : copy.categoryHint}
         </p>
-        <div className="report-category-grid">
-          {categories.map((category) => (
+        <div className="report-category-grid" ref={categoryGrid}>
+          {visibleCategories.map((category) => (
             <label className="report-category-option" key={category.id}>
               <input
                 className="sr-only"
@@ -209,9 +258,21 @@ function NewReportFormInner({
                 <CategoryIcon iconKey={category.iconKey} size={18} strokeWidth={1.8} />
               </span>
               <span className="text-sm leading-snug font-medium">{category.name}</span>
+              <span className="report-category-check" aria-hidden="true">
+                <Check size={14} strokeWidth={2.6} />
+              </span>
             </label>
           ))}
         </div>
+        {!showAllCategories && (
+          <button
+            className="button button--ghost button--sm justify-self-start"
+            onClick={revealAllCategories}
+            type="button"
+          >
+            {copy.showAllCategories}
+          </button>
+        )}
         {categoryError && (
           <p id="category-error" className="report-error text-sm" role="alert">
             {categoryError}
@@ -219,108 +280,110 @@ function NewReportFormInner({
         )}
       </fieldset>
 
-      <div className="grid gap-1.5">
-        <label className="report-field" htmlFor="report-building">
-          {copy.buildingLabel}
-        </label>
-        <select
-          id="report-building"
-          className="report-input"
-          name="buildingId"
-          value={buildingId}
-          onChange={handleBuildingChange}
-          aria-invalid={buildingError ? true : undefined}
-          aria-describedby={buildingError ? "building-error" : undefined}
-          required
-        >
-          <option value="" disabled>
-            {copy.buildingPlaceholder}
-          </option>
-          {buildings.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
+      <fieldset className="report-step">
+        <StepLegend step={2}>{copy.whereTitle}</StepLegend>
+        <div className="grid gap-1.5">
+          <label className="report-field" htmlFor="report-building">
+            {copy.buildingLabel}
+          </label>
+          <select
+            id="report-building"
+            className="report-input"
+            name="buildingId"
+            value={buildingId}
+            onChange={handleBuildingChange}
+            aria-invalid={buildingError ? true : undefined}
+            aria-describedby={buildingError ? "building-error" : undefined}
+            required
+          >
+            <option value="" disabled>
+              {copy.buildingPlaceholder}
             </option>
-          ))}
-        </select>
-        {buildingError && (
-          <p id="building-error" className="report-error text-sm" role="alert">
-            {buildingError}
-          </p>
-        )}
-      </div>
-
-      <SimilarReports categoryId={categoryId} buildingId={buildingId} />
-
-      <div className="grid gap-1.5">
-        <label className="report-field" htmlFor="report-location">
-          {copy.locationLabel}
-        </label>
-        <input
-          id="report-location"
-          className="report-input"
-          name="locationReference"
-          type="text"
-          value={locationReference}
-          onChange={handleLocationChange}
-          placeholder={copy.locationPlaceholder}
-          maxLength={REPORT_LOCATION_MAX_LENGTH}
-          aria-invalid={locationError ? true : undefined}
-          aria-describedby={locationDescribedBy}
-          required
-        />
-        <div className="flex flex-wrap justify-between gap-2 text-sm text-muted">
-          <p id="location-hint">{copy.locationHint}</p>
-          <span className="font-mono text-xs">
-            {copy.characterCount(locationReference.length, REPORT_LOCATION_MAX_LENGTH)}
-          </span>
+            {buildings.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+          {buildingError && (
+            <p id="building-error" className="report-error text-sm" role="alert">
+              {buildingError}
+            </p>
+          )}
         </div>
-        {locationError && (
-          <p id="location-error" className="report-error text-sm" role="alert">
-            {locationError}
-          </p>
-        )}
-      </div>
 
-      {uploadsEnabled && (
-        <PhotoPicker
-          target={photoTarget}
-          max={mediaLimits.report_before}
-          onBusyChange={setUploading}
-        />
-      )}
+        <SimilarReports categoryId={categoryId} buildingId={buildingId} />
 
-      <div className="grid gap-1.5">
-        <label className="report-field" htmlFor="report-description">
-          {copy.descriptionLabel}
-        </label>
-        <textarea
-          id="report-description"
-          className="report-input"
-          name="description"
-          rows={4}
-          value={description}
-          onChange={handleDescriptionChange}
-          placeholder={copy.descriptionPlaceholder}
-          maxLength={REPORT_DESCRIPTION_MAX_LENGTH}
-          aria-invalid={descriptionError ? true : undefined}
-          aria-describedby={descriptionDescribedBy}
-          required
-        />
-        <div className="flex flex-wrap justify-between gap-2 text-sm text-muted">
-          <p id="description-hint">{copy.descriptionHint}</p>
-          <span className="font-mono text-xs">
-            {copy.characterCount(description.length, REPORT_DESCRIPTION_MAX_LENGTH)}
-          </span>
+        <div className="grid gap-1.5">
+          <label className="report-field" htmlFor="report-location">
+            {copy.locationLabel}
+          </label>
+          <input
+            id="report-location"
+            className="report-input"
+            name="locationReference"
+            type="text"
+            value={locationReference}
+            onChange={handleLocationChange}
+            placeholder={topicCopy?.locationPlaceholder ?? copy.locationPlaceholder}
+            maxLength={REPORT_LOCATION_MAX_LENGTH}
+            aria-invalid={locationError ? true : undefined}
+            aria-describedby={locationDescribedBy}
+            required
+          />
+          <div className="flex flex-wrap justify-between gap-2 text-sm text-muted">
+            <p id="location-hint">{copy.locationHint}</p>
+            <CharacterCount length={locationReference.length} max={REPORT_LOCATION_MAX_LENGTH} />
+          </div>
+          {locationError && (
+            <p id="location-error" className="report-error text-sm" role="alert">
+              {locationError}
+            </p>
+          )}
         </div>
-        {descriptionError && (
-          <p id="description-error" className="report-error text-sm" role="alert">
-            {descriptionError}
-          </p>
-        )}
-      </div>
+      </fieldset>
 
-      <fieldset className="m-0 grid gap-3 border-t border-line pt-4">
-        <legend className="text-sm font-semibold">{copy.optionalTitle}</legend>
+      <fieldset className="report-step">
+        <StepLegend step={3}>{copy.detailsTitle}</StepLegend>
+        <div className="grid gap-1.5">
+          <label className="report-field" htmlFor="report-description">
+            {copy.descriptionLabel}
+          </label>
+          <textarea
+            id="report-description"
+            className="report-input"
+            name="description"
+            rows={3}
+            value={description}
+            onChange={handleDescriptionChange}
+            placeholder={topicCopy?.descriptionPlaceholder ?? copy.descriptionPlaceholder}
+            maxLength={REPORT_DESCRIPTION_MAX_LENGTH}
+            aria-invalid={descriptionError ? true : undefined}
+            aria-describedby={descriptionDescribedBy}
+            required
+          />
+          <div className="flex flex-wrap justify-between gap-2 text-sm text-muted">
+            <p id="description-hint">{copy.descriptionHint}</p>
+            <CharacterCount length={description.length} max={REPORT_DESCRIPTION_MAX_LENGTH} />
+          </div>
+          {descriptionError && (
+            <p id="description-error" className="report-error text-sm" role="alert">
+              {descriptionError}
+            </p>
+          )}
+        </div>
+
+        {uploadsEnabled && (
+          <PhotoPicker
+            target={photoTarget}
+            max={mediaLimits.report_before}
+            onBusyChange={setUploading}
+          />
+        )}
+      </fieldset>
+
+      <fieldset className="report-step">
+        <StepLegend step={4}>{copy.optionalTitle}</StepLegend>
         <p className="text-sm text-muted">{copy.optionalHint}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
@@ -372,47 +435,30 @@ function NewReportFormInner({
         </div>
       </fieldset>
 
-      <input type="hidden" name="draftToken" value={draftToken ?? ""} />
-      <DraftGate key={gateKey} scope="report" onDraft={handleDraft} />
+      <div className="report-submit">
+        <input type="hidden" name="draftToken" value={draftToken ?? ""} />
+        <DraftGate key={gateKey} scope="report" onDraft={handleDraft} />
 
-      <output className="report-error text-sm">{state.error}</output>
+        <output className="report-error text-sm">{state.error}</output>
 
-      <button
-        className="button button--primary justify-self-start"
-        disabled={pending || uploading || !draftToken}
-        type="submit"
-      >
-        {pending ? copy.submitting : copy.submit}
-      </button>
+        <button
+          className="button button--primary w-full sm:w-auto sm:justify-self-start"
+          disabled={pending || uploading || !draftToken}
+          type="submit"
+        >
+          {pending ? copy.submitting : copy.submit}
+        </button>
+      </div>
     </form>
   );
 }
 
-export function NewReportForm({
-  categories,
-  buildings,
-  initialBuildingId = "",
-  uploadsEnabled = false,
-}: {
-  categories: ReportCatalogCategory[];
-  buildings: ReportCatalogBuilding[];
-  initialBuildingId?: string;
-  uploadsEnabled?: boolean;
-}) {
+export function NewReportForm(props: NewReportFormProps) {
   const [formKey, setFormKey] = useState(0);
 
   const resetForm = useCallback(() => {
     setFormKey((count) => count + 1);
   }, []);
 
-  return (
-    <NewReportFormInner
-      key={formKey}
-      categories={categories}
-      buildings={buildings}
-      initialBuildingId={initialBuildingId}
-      uploadsEnabled={uploadsEnabled}
-      onReset={resetForm}
-    />
-  );
+  return <NewReportFormInner key={formKey} {...props} onReset={resetForm} />;
 }

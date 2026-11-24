@@ -162,6 +162,14 @@ export const dashboard = {
     saved: "Cambios guardados.",
     pending: "Guardando…",
     edit: (name: string) => `Editar ${name}`,
+    shortLinks: {
+      title: "Enlaces cortos",
+      description:
+        "Los carteles y códigos QR usan estos enlaces para mostrar primero ciertas categorías. Se eligen por identificador: si cambias o desactivas uno, el enlace mostrará todas las categorías. Agrega ?building=<identificador> para preseleccionar también el edificio.",
+      path: "Enlace",
+      categories: "Categorías por identificador",
+      prefix: (prefix: string) => `${prefix}*`,
+    },
     failures: {
       invalid: "Revisa los datos del formulario.",
       duplicate_slug: "Ya existe un elemento con ese identificador.",

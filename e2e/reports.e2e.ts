@@ -1,6 +1,7 @@
+import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-import { reports } from "../src/messages/es-MX";
+import { adoption, reports } from "../src/messages/es-MX";
 import { uniqueText, waitForDraft } from "./helpers";
 
 const form = reports.form;
@@ -56,3 +57,50 @@ test("another device can confirm a similar open report only once", async ({ brow
   ).toBeDisabled();
   await visitor.close();
 });
+
+test("printed short links open the report form on the matching problem", async ({ page }) => {
+  await page.goto("/WC?building=library");
+  await expect(page).toHaveURL(/\/reports\/new\?topic=restroom&building=library$/);
+  await expect(page.getByRole("heading", { name: reports.topics.restroom.title })).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Baño sin papel" })).not.toBeChecked();
+  await expect(page.getByRole("radio", { name: "Luminaria fundida" })).toHaveCount(0);
+  await expect(page.getByLabel(form.buildingLabel)).toHaveValue(/.+/);
+  await page.getByRole("button", { name: form.showAllCategories }).click();
+  await expect(page.getByRole("radio", { name: "Luminaria fundida" })).toHaveCount(1);
+  // Keyboard focus moves to the newly revealed options instead of getting lost.
+  await expect(page.locator("input[name=categoryId]:focus")).toHaveCount(1);
+});
+
+for (const [path, topic, category] of [
+  ["/basura", "trash", "Botes de basura llenos"],
+  ["/agua", "water", "Fuga de agua"],
+  ["/aire", "air", "Aire acondicionado con falla"],
+] as const) {
+  test(`${path} preselects ${category}`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page).toHaveURL(new RegExp(`/reports/new\\?topic=${topic}$`));
+    await expect(page.getByRole("heading", { name: reports.topics[topic].title })).toBeVisible();
+    await expect(page.getByRole("radio", { name: category })).toBeChecked();
+  });
+}
+
+test("the adoption short link opens the gallery", async ({ page }) => {
+  await page.goto("/adopta");
+  await expect(page).toHaveURL(/\/adopt$/);
+  await expect(page.getByRole("heading", { level: 1, name: adoption.gallery.title })).toBeVisible();
+});
+
+for (const path of ["/reports/new", "/reports/new?topic=air"]) {
+  test(`${path} has no serious or critical accessibility findings`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(path);
+    await expect(page.getByRole("button", { name: form.submit })).toBeVisible();
+    const result = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+      .exclude("iframe")
+      .analyze();
+    expect(
+      result.violations.filter(({ impact }) => impact === "critical" || impact === "serious"),
+    ).toEqual([]);
+  });
+}

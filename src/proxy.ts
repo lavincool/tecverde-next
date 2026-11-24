@@ -1,6 +1,7 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 
+import { resolveShortLink } from "@/lib/short-links";
 import {
   createDeviceCookie,
   deviceCookieName,
@@ -12,6 +13,11 @@ import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const shortLink = resolveShortLink(path, request.nextUrl.search);
+  if (shortLink) {
+    // Temporary, so printed QR codes can point somewhere else later without stale browser caches.
+    return NextResponse.redirect(new URL(shortLink, request.url), 307);
+  }
   if (path === "/dashboard" || path.startsWith("/dashboard/")) {
     return getSessionCookie(request)
       ? NextResponse.next()
