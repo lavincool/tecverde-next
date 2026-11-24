@@ -201,9 +201,8 @@ body {
   position: relative;
   display: grid;
   overflow: hidden;
-  min-height: clamp(22rem, 36vw, 27rem);
   align-items: end;
-  padding: clamp(1.75rem, 5vw, 3.75rem);
+  padding: clamp(1.5rem, 5vw, 3.75rem);
   border-radius: var(--radius);
   background: var(--tv-hero-surface);
   color: oklch(0.98 0 0);
@@ -217,6 +216,94 @@ body {
     radial-gradient(circle, oklch(0.8 0.17 150 / 0.45) 1px, transparent 1.6px) 0 0 / 13px 13px;
   mask-image: linear-gradient(146deg, transparent 24%, #000 90%);
   pointer-events: none;
+}
+
+@media (min-width: 40rem) {
+  .campus-hero {
+    min-height: clamp(22rem, 36vw, 27rem);
+  }
+}
+
+.hero-action {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 1.1rem;
+  border: 1px solid oklch(1 0 0 / 0.28);
+  border-radius: 99rem;
+  color: oklch(0.98 0 0);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition:
+    background-color 150ms,
+    scale 150ms;
+}
+
+.hero-action:hover {
+  background-color: oklch(1 0 0 / 0.1);
+}
+
+.hero-action:active {
+  scale: 0.98;
+}
+
+.hero-action[data-primary] {
+  border-color: var(--tv-hero-accent);
+  background-color: var(--tv-hero-accent);
+  color: oklch(0.17 0 0);
+}
+
+.hero-action[data-primary]:hover {
+  background-color: color-mix(in oklab, var(--tv-hero-accent) 88%, white);
+}
+
+.quick-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+@media (min-width: 48rem) {
+  .quick-report-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.quick-report-tile {
+  display: grid;
+  height: 100%;
+  min-height: 7.5rem;
+  align-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  transition:
+    border-color 150ms,
+    box-shadow 150ms,
+    scale 150ms;
+}
+
+.quick-report-tile:hover {
+  border-color: var(--accent);
+  box-shadow: var(--tv-shadow);
+}
+
+.quick-report-tile:active {
+  scale: 0.98;
+}
+
+.quick-report-icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 99rem;
+  background-color: color-mix(in oklab, var(--accent) 16%, var(--surface));
+  color: var(--foreground);
 }
 
 .home-action {

@@ -1,4 +1,4 @@
-import { ClipboardPlus, HeartHandshake, PawPrint } from "lucide-react";
+import { ArrowRight, ClipboardList, ClipboardPlus, HeartHandshake, PawPrint } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -6,23 +6,9 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { SkeletonCard } from "@/components/feedback/skeleton-card";
 import { PetCard } from "@/features/adoption/components/pet-card";
 import { getAdoptedStories, getGallery } from "@/features/adoption/queries";
+import { QuickReportLinks } from "@/features/reports/components/quick-report-links";
 import { navForward } from "@/lib/navigation";
-import { adoption, common, reports } from "@/messages/es-MX";
-
-const actions = [
-  {
-    href: "/reports/new",
-    title: reports.new.title,
-    description: reports.new.description,
-    icon: ClipboardPlus,
-  },
-  {
-    href: "/adopt",
-    title: adoption.gallery.title,
-    description: adoption.gallery.description,
-    icon: PawPrint,
-  },
-] as const;
+import { adoption, common } from "@/messages/es-MX";
 
 async function HomePets() {
   const [pets, stories] = await Promise.all([
@@ -38,7 +24,7 @@ async function HomePets() {
           </h2>
           {pets.length > 0 && (
             <Link className="text-sm underline" href="/adopt" transitionTypes={navForward}>
-              {adoption.gallery.title}
+              {adoption.gallery.seeAll}
             </Link>
           )}
         </div>
@@ -100,38 +86,47 @@ export default function HomePage() {
           <p className="font-mono text-sm font-medium tracking-wide text-hero-accent">
             {common.campus}
           </p>
-          <h1 className="max-w-[12ch] text-[clamp(2.65rem,7vw,5.25rem)] leading-[0.98] font-semibold tracking-[-0.065em]">
+          <h1 className="max-w-[12ch] text-[clamp(2.25rem,7vw,5.25rem)] leading-[0.98] font-semibold tracking-[-0.065em]">
             {common.home.title}
           </h1>
           <p className="max-w-md text-base leading-relaxed text-hero-muted sm:text-lg">
             {common.home.description}
           </p>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Link
+              className="hero-action"
+              data-primary
+              href="/reports/new"
+              transitionTypes={navForward}
+            >
+              <ClipboardPlus aria-hidden="true" size={18} strokeWidth={1.9} />
+              {common.home.report}
+            </Link>
+            <Link className="hero-action" href="/adopt" transitionTypes={navForward}>
+              <PawPrint aria-hidden="true" size={18} strokeWidth={1.9} />
+              {common.home.adopt}
+            </Link>
+          </div>
         </div>
       </header>
 
-      <section aria-labelledby="home-actions" className="grid gap-4">
-        <h2 id="home-actions" className="text-xl font-semibold tracking-tight">
-          {common.home.actions}
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {actions.map(({ href, title, description, icon: Icon }, index) => (
-            <Link
-              className="home-action"
-              data-primary={index === 0}
-              href={href}
-              key={href}
-              transitionTypes={navForward}
-            >
-              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-panel text-foreground">
-                <Icon aria-hidden="true" size={21} strokeWidth={1.8} />
-              </span>
-              <span className="grid gap-1">
-                <span className="text-lg font-semibold tracking-tight">{title}</span>
-                <span className="home-action-description text-sm leading-snug">{description}</span>
-              </span>
-            </Link>
-          ))}
+      <section aria-labelledby="quick-report" className="grid gap-4">
+        <div className="grid gap-1">
+          <h2 id="quick-report" className="text-xl font-semibold tracking-tight">
+            {common.home.quickTitle}
+          </h2>
+          <p className="text-sm text-muted">{common.home.quickDescription}</p>
         </div>
+        <QuickReportLinks />
+        <Link
+          className="inline-flex min-h-11 items-center gap-2 justify-self-start text-sm font-medium underline-offset-4 hover:underline"
+          href="/reports/mine"
+          transitionTypes={navForward}
+        >
+          <ClipboardList aria-hidden="true" size={17} strokeWidth={1.8} />
+          {common.home.mine}
+          <ArrowRight aria-hidden="true" size={16} />
+        </Link>
       </section>
 
       <Suspense fallback={loading}>

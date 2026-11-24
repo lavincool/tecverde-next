@@ -10,7 +10,11 @@ export const common = {
     title: "Cuidemos nuestro campus",
     description:
       "Reporta problemas en el campus o ayuda a encontrarles hogar a los animales que viven aquí.",
-    actions: "¿Qué quieres hacer?",
+    report: "Reportar un problema",
+    adopt: "Adoptar un animal",
+    quickTitle: "Reporte rápido",
+    quickDescription: "Elige el tipo de problema y te llevamos directo al formulario.",
+    mine: "¿Ya enviaste un reporte? Consulta su estado",
   },
   verify: {
     title: "Confirma tu correo",
